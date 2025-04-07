@@ -1,5 +1,5 @@
 
-import { registerGet } from '../server-utils/apiroutehelpers.js';
+import { registerGet } from '../server-utils/api-route-helpers.js';
 
 
 /*

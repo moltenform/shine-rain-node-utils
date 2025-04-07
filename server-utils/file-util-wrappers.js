@@ -3,7 +3,7 @@ import * as path from 'path';
 import fspromises from 'node:fs/promises';
 import Os from 'os';
 
-import { promptsAlert } from './pathfoundutils.js';
+import { promptsAlert } from './path-found-utils.js';
 import * as childProcess from 'child_process';
 import { assertTrue } from './jsutils.js';
 

@@ -8,9 +8,9 @@ import {
     registerGetUsingDb,
     registerPost,
     registerPostUsingDb,
-} from '../server-utils/apiroutehelpers.js';
+} from '../server-utils/api-route-helpers.js';
 
-import { ApiRoutesAutoRoutes } from './apiroutesAutoRoutes.js';
+import { ApiRoutesAutoRoutes } from './api-routes-auto-routes.js';
 
 /*
 developed by Ben Fisher(moltenform.com)
@@ -21,8 +21,6 @@ Register api routes.
 export class ApiRoutes {
     static async Register(app) {
         await ApiRoutesAutoRoutes.Register(app);
-        await CrudLogic.Register(app);
-        await ApiRoutes.Register(app);
 
         registerGetUsingDb(app, '/public/example-get/:p1', async (req, res, conn) => {
             res.send({ result: `called api with param ${req.params.p1}` });

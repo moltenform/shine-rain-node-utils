@@ -3,7 +3,7 @@ import {
     registerGetUsingDb,
     registerPost,
     registerPostUsingDb,
-} from '../server-utils/apiroutehelpers.js';
+} from '../server-utils/api-route-helpers.js';
 import { getPathOnDisk } from '../server-utils/lowest-level-utils.js';
 import {
     fsExistsSync,

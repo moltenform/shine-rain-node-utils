@@ -39,6 +39,7 @@ export function jwtHandlingRunOnAppSetup(app) {
 export function customAuthRequiredMiddleware_User(req, res, next) {
     return customAuthRequiredMiddlewareGeneral(req, res, next, cookieTokenKeyUser);
 }
+
 export function customAuthRequiredMiddleware_Admin(req, res, next) {
     return customAuthRequiredMiddlewareGeneral(req, res, next, cookieTokenKeyAdmin);
 }
@@ -110,7 +111,6 @@ const customAuthRequiredMiddlewareImpl = (req, res, cookieTokenKey) => {
 };
 
 export async function doPasswordSigninImpl(req, res, conn, cookieTokenKey) {
-    // currently we only do this method for admins.
     // intentional sleep, make brute force harder.
     if (isProduction()) {
         await sleep(1000);
@@ -131,7 +131,6 @@ export async function doPasswordSigninImpl(req, res, conn, cookieTokenKey) {
             throw new Error('incorrect password');
         }
 
-        // update last login
         let mockReq = {
             customAuthRequiredMiddlewareResult: {
                 [cookieTokenKey]: { loggedInId: found.adminId },

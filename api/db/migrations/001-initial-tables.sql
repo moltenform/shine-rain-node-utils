@@ -4,7 +4,6 @@ CREATE TABLE `users` (
   firstName TEXT NOT NULL,
   lastName TEXT NOT NULL,
   email TEXT NOT NULL,
-  pw TEXT NOT NULL,
   counter,
   -- demonstrates our json feature
   info_json

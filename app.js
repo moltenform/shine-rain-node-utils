@@ -2,8 +2,8 @@ import express from 'express';
 import http from 'http';
 import nunjucks from 'nunjucks';
 
-import { BasicWebRoutes } from './views/webroutes.js';
-import { ApiRoutes } from './api/apiRoutes222.js';
+import { BasicWebRoutes } from './views/web-routes.js';
+import { ApiRoutes } from './api/api-routes.js';
 import {
     getPathOnDisk,
     getPortNumber,
@@ -14,7 +14,7 @@ import { jwtHandlingRunOnAppSetup } from './server-utils/jwt-handling.js';
 import { logInfo, shouldBreakOnExceptions_Enable } from './server-utils/logging.js';
 import { startSqliteDbOnAppSetup } from './api/db/schema.js';
 import { respondToServerErr } from './server-utils/err-handling.js';
-import { runProtectedByLockAndTxn } from './server-utils/apiroutehelpers.js';
+import { runProtectedByLockAndTxn } from './server-utils/api-route-helpers.js';
 import { osPlatform, pathBaseName, pathJoin } from './server-utils/file-util-wrappers.js';
 import { createProxyMiddleware } from 'http-proxy-middleware';
 
@@ -58,7 +58,11 @@ app.use(express.static(pathJoin(rootdir, 'public'), { maxAge: '1hr', cacheContro
 // without the limit:15mb, cannot upload files
 app.use(express.json({ limit: '15mb' }));
 
-//~ jwtHandlingRunOnAppSetup(app);
+const useJwtAuth = false;
+if (useJwtAuth) {
+    jwtHandlingRunOnAppSetup(app);
+}
+
 //~ const continueStartingServer = await startSqliteDbOnAppSetup();
 var continueStartingServer = true
 
