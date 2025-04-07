@@ -40,6 +40,7 @@ if (useSassMiddleware) {
     // used to have "node-sass-middleware": "~1.0.1",
     // import sassMiddleware from 'node-sass-middleware';
     // if indentedSyntax is true, use .sass instead of .scss
+    const sassMiddleware = {}
     app.use(
         sassMiddleware({
             src: pathJoin(rootdir, 'bootstrap'),
@@ -63,8 +64,7 @@ if (useJwtAuth) {
     jwtHandlingRunOnAppSetup(app);
 }
 
-//~ const continueStartingServer = await startSqliteDbOnAppSetup();
-var continueStartingServer = true
+const continueStartingServer = await startSqliteDbOnAppSetup();
 
 // add routes
 // The module express-crud-router can be useful

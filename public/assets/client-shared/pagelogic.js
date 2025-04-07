@@ -2,7 +2,6 @@
 
 // because this file is included on both serverside and clientside, we can't do an
 // explicit load of lodash and instead rely on it being available globally.
-// import * as _ from '/assets/libs/lodash.4.17.21.min,js-cookie-3.0.5.js';
 
 // eslint-disable-next-line no-undef
 var window = typeof globalThis !== 'undefined' ? globalThis : null;

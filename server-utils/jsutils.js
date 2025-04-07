@@ -17,18 +17,18 @@ export function genUuid() {
 }
 
 function consoleError(s) {
-    logErr(s);
+    jsutilsLoggingCallbacks.logErr(s);
 }
 
 export function assertThrow(fn, expectErrContains, s1, s2) {
-    shouldBreakOnExceptions_Disable();
+    jsutilsLoggingCallbacks.shouldBreakOnExceptions_Disable();
     let didThrow = undefined;
     try {
         fn();
     } catch (e) {
         didThrow = e;
     } finally {
-        shouldBreakOnExceptions_Enable();
+        jsutilsLoggingCallbacks.shouldBreakOnExceptions_Enable();
     }
 
     if (!didThrow) {
@@ -48,13 +48,13 @@ export function assertThrow(fn, expectErrContains, s1, s2) {
 
 export async function assertThrowAsync(fn, expectErrContains, s1, s2) {
     let didThrow = undefined;
-    shouldBreakOnExceptions_Disable();
+    jsutilsLoggingCallbacks.shouldBreakOnExceptions_Disable();
     try {
         await fn();
     } catch (e) {
         didThrow = e;
     } finally {
-        shouldBreakOnExceptions_Enable();
+        jsutilsLoggingCallbacks.shouldBreakOnExceptions_Enable();
     }
 
     if (!didThrow) {
@@ -87,7 +87,7 @@ export async function logContextOnFailureButLetExceptionContinue(context, contex
         succeeded = true;
     } finally {
         if (!succeeded) {
-            logErr(`${context}`, contextParams);
+            jsutilsLoggingCallbacks.logErr(`${context}`, contextParams);
         }
     }
 

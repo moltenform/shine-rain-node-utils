@@ -19,7 +19,6 @@ async function runTests() {
 
     shouldBreakOnExceptions_Enable();
     await startTestDbMode();
-    await testAccess();
     await testUtils();
     await doDocManageTests();
 

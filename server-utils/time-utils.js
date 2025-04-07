@@ -1,4 +1,4 @@
-import { assertTrue } from "./jsutils.js";
+import { assertEq, assertTrue } from "./jsutils.js";
 
 
 /**

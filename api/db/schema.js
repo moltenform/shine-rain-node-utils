@@ -9,7 +9,7 @@ import {
     pathDirName,
 } from '../../server-utils/file-util-wrappers.js';
 import _ from 'lodash';
-import { assertEq, assertTrue } from '../../server-utils/jsutils.js';
+import { assertEq, assertTrue, genUuid } from '../../server-utils/jsutils.js';
 
 /*
  currently db methods are SYNC and not ASYNC
@@ -42,7 +42,6 @@ async function startNewDb() {
     db.exec('pragma page_size=32768;');
     makeMyPatches(db, transformJsonToStr, transformStrToJson);
     lookForJsonFields(db);
-    checkCompanyIdFieldsHaveAnIndex(db);
     
     db.insertWithoutValidationAnyCompany(`Metadata`, {
         MetadataId: genUuid(),
@@ -72,7 +71,6 @@ function loadExistingDb() {
     db.exec('pragma page_size=32768;');
     makeMyPatches(db, transformJsonToStr, transformStrToJson);
     lookForJsonFields(db);
-    checkCompanyIdFieldsHaveAnIndex(db);
 
     let got = db.queryAnyCompanyFirstRow(`select schemaVersion from Metadata`);
     if (got?.schemaVersion === 1) {

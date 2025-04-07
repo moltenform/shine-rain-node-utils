@@ -4,7 +4,6 @@ import { registerGet } from '../server-utils/api-route-helpers.js';
 
 /*
 developed by Ben Fisher(moltenform.com)
-Proprietary software
 Set up web routes
 */
 

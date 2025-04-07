@@ -111,7 +111,7 @@ const customAuthRequiredMiddlewareImpl = (req, res, cookieTokenKey) => {
 };
 
 export async function doPasswordSigninImpl(req, res, conn, cookieTokenKey) {
-    // intentional sleep, make brute force harder.
+    // intentional sleep, make brute force attacks harder.
     if (isProduction()) {
         await sleep(1000);
     }

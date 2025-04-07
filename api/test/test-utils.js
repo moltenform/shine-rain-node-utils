@@ -3,7 +3,7 @@
 /* (c) 2019 moltenform(Ben Fisher) */
 /* This file is released under the MIT license */
 
-import { assertEq, assertTrue } from "../../server-utils/jsutils.js";
+import { assertEq, assertTrue, isValidishUuid, modWrapAround, renderPrice } from "../../server-utils/jsutils.js";
 
 export async function testUtils() {
     testIsValidishUuid();

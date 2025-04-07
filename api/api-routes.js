@@ -14,7 +14,6 @@ import { ApiRoutesAutoRoutes } from './api-routes-auto-routes.js';
 
 /*
 developed by Ben Fisher(moltenform.com)
-Proprietary software
 Register api routes.
 */
 

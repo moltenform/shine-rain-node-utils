@@ -139,3 +139,7 @@ function getMiddleware(app, route, method, fnAsyncCallback) {
     return arrMiddleware
 }
 
+// if you need upload support,
+// import Multer and create an instance here.
+const multerUploadInstance = {}
+

@@ -60,7 +60,7 @@ module.exports = {
         'eol-last': 'off',
         'testing-library/render-result-naming-convention': 'off',
         'react-hooks/exhaustive-deps': 'off',
-        'unused-imports/no-unused-imports': 'warn',
+        'unused-imports/no-unused-imports': 'off',
         'unused-imports/no-unused-vars': 'off',
         'no-unused-vars': 'off',
         'no-unreachable': 'warn',
