@@ -1,0 +1,54 @@
+
+
+{% extends "index.njk.html" %} 
+
+
+{% block content %}
+
+<br/><br/><br/>
+Value passed from server is "{{ abc }}".
+<br/><br/><br/>
+If the above says "def", then this page is working.
+<br/><br/><br/>
+<button id="btn">Test Database Rollback</button>
+<script>
+    import * as pageLogic from '/assets/client-shared/pagelogic.js';
+ 
+    pageLogic.byId('btn').addEventListener('click', async ()=>{
+        try {
+            await runTest()
+        } catch (e) {
+            pageLogic.alert("Test failed: " + e.message)
+        }
+
+    })
+
+async function runTest() {
+    const initialName = await pageLogic.callApiOrThrow('/admin/super/legacyStylePage', 'post',  {action: 'testDbRollbackRetrieve'})
+    console.log('initialName', initialName.nm)
+    if (initialName.nm.includes('-changed-')) {
+        throw new Error("Test failed-name is already 'changed'.")
+    }
+
+    var gotE
+    try {
+        await pageLogic.callApiOrThrow('/admin/super/legacyStylePage', 'post',  {action: 'testDbRollback'})
+    } catch (e) {
+        gotE = e
+    }
+    if (!gotE) {
+        pageLogic.alert("Test failed-expected to see an error.")
+    }
+
+    const finalName = await pageLogic.callApiOrThrow('/admin/super/legacyStylePage', 'post',  {action: 'testDbRollbackRetrieve'})
+    console.log('finalName', finalName.nm)
+    if (finalName.nm.includes('-changed-')) {
+        throw new Error("Test failed-name did end up being 'changed'.")
+    }
+    
+    pageLogic.alert('test passed')
+}
+</script>
+
+
+{% endblock %}

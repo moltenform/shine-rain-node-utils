@@ -1,0 +1,9 @@
+
+node_modules
+build
+client
+**/views/raw_wf/*
+**/public/assets/libs/*
+**/public/assets/vanilla/*
+
+
