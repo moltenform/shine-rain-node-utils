@@ -1,7 +1,7 @@
-import { EeAccessLevels } from "../../public/assets/client-shared/shared/progSchema.js";
-import * as serverUtils from '../../server-utils/jsutils.js';
+
+
 import _ from 'lodash';
-import { insertValidatedOnTableAdmin, insertValidatedOnTableCompany } from "./schemaValidatedConstructors.js";
+import { assertTrue } from "../../server-utils/jsutils.js";
 
 export function escapeForLike(s) {
     return s.replace(/%/g, '\\%').replace(/_/g, '\\_');
@@ -46,7 +46,7 @@ export function makeMyPatches(dbConnection, transformJsonToStr, transformStrToJs
     };
     dbConnection.queryAnyCompany = (...args) => {
         if (args[0]) {
-            serverUtils.assertTrue(typeof args[0] === 'string', `query must be a string`)
+            assertTrue(typeof args[0] === 'string', `query must be a string`)
         }
 
         const ret = dbConnection._origQuery(...args).map(transformStrToJson);
@@ -54,7 +54,7 @@ export function makeMyPatches(dbConnection, transformJsonToStr, transformStrToJs
     };
     dbConnection.queryAnyCompanyFirstRow = (...args) => {
         if (args[0]) {
-            serverUtils.assertTrue(typeof args[0] === 'string', `query must be a string`)
+            assertTrue(typeof args[0] === 'string', `query must be a string`)
         }
 
         const ret = dbConnection._origQueryFirstRow(...args);
@@ -86,7 +86,7 @@ export function makeMyPatches(dbConnection, transformJsonToStr, transformStrToJs
     dbConnection.insertWithoutValidationAnyCompany = (a1, a2, ...args) => {
         a2 = transformJsonToStr(a2);
         const countChanges = dbConnection._origInsert(a1, a2, ...args);
-        serverUtils.assertTrue(countChanges >= 1, 'insert failed');
+        assertTrue(countChanges >= 1, 'insert failed');
         return countChanges;
     };
     // be careful about replace() because it deletes the existing row and then inserts a new one,
@@ -102,9 +102,9 @@ export function makeMyPatches(dbConnection, transformJsonToStr, transformStrToJs
 }
 
 export function getCountAnyCompanyFromDb(conn, query, paramsToSend=undefined) {
-    serverUtils.assertTrue(query.includes('whatToCount'))
+    assertTrue(query.includes('whatToCount'))
     if (query.includes('?')) {
-        serverUtils.assertTrue(paramsToSend !== undefined)
+        assertTrue(paramsToSend !== undefined)
     }
     
     let c = conn.sqlAnyCompany(query)

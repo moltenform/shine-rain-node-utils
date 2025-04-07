@@ -3,7 +3,7 @@ import http from 'http';
 import nunjucks from 'nunjucks';
 
 import { BasicWebRoutes } from './views/webroutes.js';
-import { ApiRoutes } from './api/apiroutes.js';
+import { ApiRoutes } from './api/apiRoutes222.js';
 import {
     getPathOnDisk,
     getPortNumber,
@@ -12,12 +12,10 @@ import {
 } from './server-utils/lowest-level-utils.js';
 import { jwtHandlingRunOnAppSetup } from './server-utils/jwt-handling.js';
 import { logInfo, shouldBreakOnExceptions_Enable } from './server-utils/logging.js';
-import { startSqliteDbOnAppSetup } from './api/businesslogic/schema.js';
-import * as serverUtils from './server-utils/jsutils.js';
+import { startSqliteDbOnAppSetup } from './api/db/schema.js';
 import { respondToServerErr } from './server-utils/err-handling.js';
-import { enableBackgroundTasks } from './server-utils/background-task-code/bgTasksHigh.js';
 import { runProtectedByLockAndTxn } from './server-utils/apiroutehelpers.js';
-import { osPlatform, pathJoin } from './server-utils/file-util-wrappers.js';
+import { osPlatform, pathBaseName, pathJoin } from './server-utils/file-util-wrappers.js';
 import { createProxyMiddleware } from 'http-proxy-middleware';
 
 // If using nodemon, remember to specify only to watch .js extension changes.
@@ -40,7 +38,7 @@ nunjucks.configure(['views', 'api'], {
 const useSassMiddleware = false;
 if (useSassMiddleware) {
     // used to have "node-sass-middleware": "~1.0.1",
-    import sassMiddleware from 'node-sass-middleware';
+    // import sassMiddleware from 'node-sass-middleware';
     // if indentedSyntax is true, use .sass instead of .scss
     app.use(
         sassMiddleware({
@@ -52,7 +50,6 @@ if (useSassMiddleware) {
     );
 }
 
-// express-crud-router can be useful
 
 // Host static files
 app.use(express.static(pathJoin(rootdir, 'public'), { maxAge: '1hr', cacheControl: true }));
@@ -61,12 +58,16 @@ app.use(express.static(pathJoin(rootdir, 'public'), { maxAge: '1hr', cacheContro
 // without the limit:15mb, cannot upload files
 app.use(express.json({ limit: '15mb' }));
 
-jwtHandlingRunOnAppSetup(app);
-const continueStartingServer = await startSqliteDbOnAppSetup();
+//~ jwtHandlingRunOnAppSetup(app);
+//~ const continueStartingServer = await startSqliteDbOnAppSetup();
+var continueStartingServer = true
 
 // add routes
+// The module express-crud-router can be useful
 await BasicWebRoutes.Register(app);
 await ApiRoutes.Register(app);
+
+// you can optionally have a debugging page for db access.
 const enablePhpLiteAdmin = false
 if (enablePhpLiteAdmin) {
     app.use(
@@ -75,28 +76,21 @@ if (enablePhpLiteAdmin) {
             target: 'http://localhost:8001',
             changeOrigin: true,
         })
-    );    
+    );
 }
-
-app.all('*', (req, res) => {
-    if (req?.originalUrl?.endsWith('favicon.ico')) {
-        res.status(404).send(`{"error": "404, no favicon"}`);
-    } else if (req?.originalUrl?.endsWith('.map')) {
-        res.status(404).send(`{"error": "404, no map"}`);
-    } else {
-        console.log(`404, ${req.originalUrl}`);
-        respondToServerErr(new Error('404'), req, res, '404', 404);
-    }
-});
 
 
 // Create the server
 if (continueStartingServer) {
-    enableBackgroundTasks(runProtectedByLockAndTxn);
+    //~ enableBackgroundTasks(runProtectedByLockAndTxn);
     const server = http.createServer(app);
     server.listen(getPortNumber().toString(), () => {
         logInfo(`listening on port ${getPortNumber()}...`);
     });
+}
+
+if (pathBaseName(process.argv[1]) !== pathBaseName(import.meta.url)) {
+    console.log("You are apparently importing this file instead of running it directly.")
 }
 
 shouldBreakOnExceptions_Enable();

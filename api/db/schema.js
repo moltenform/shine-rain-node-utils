@@ -1,6 +1,6 @@
 import BetterSqliteHelper from 'better-sqlite3-helper';
 import { getPathOnDisk } from '../../server-utils/lowest-level-utils.js';
-import * as serverUtils from '../../server-utils/jsutils.js';
+
 import { makeMyPatches } from './schemaWrappers.js';
 import {
     fsExistsSync,
@@ -8,9 +8,8 @@ import {
     listFilesInDir,
     pathDirName,
 } from '../../server-utils/file-util-wrappers.js';
-export { progSchema, getPrimId } from '../../public/assets/client-shared/shared/progSchema.js';
 import _ from 'lodash';
-import { checkCompanyIdFieldsHaveAnIndex } from './schemaMigrations.js';
+import { assertEq, assertTrue } from '../../server-utils/jsutils.js';
 
 /*
  currently db methods are SYNC and not ASYNC
@@ -46,7 +45,7 @@ async function startNewDb() {
     checkCompanyIdFieldsHaveAnIndex(db);
     
     db.insertWithoutValidationAnyCompany(`Metadata`, {
-        MetadataId: serverUtils.genUuid(),
+        MetadataId: genUuid(),
         schemaVersion: 2,
         countStaleIndexedDocuments: 0,
     });
@@ -82,7 +81,7 @@ function loadExistingDb() {
         got = db.queryAnyCompanyFirstRow(`select schemaVersion from Metadata`);
     }
 
-    serverUtils.assertEq(
+    assertEq(
         2,
         parseInt(got?.schemaVersion),
         'different or missing schema version in db. please delete the db and re-run node app.js --startNewDbFile'
@@ -104,21 +103,21 @@ export async function startTestDbMode() {
 export function getReadWriteDbConn_CallOnlyFromApiRouteHelpers() {
     const c = BetterSqliteHelper();
     makeMyPatches(c, transformJsonToStr, transformStrToJson);
-    serverUtils.assertTrue(_.size(colsThatAreJson) > 0, "We expect lookForJsonFields to have been called by this point.")
+    assertTrue(_.size(colsThatAreJson) > 0, "We expect lookForJsonFields to have been called by this point.")
     return c;
 }
 
 export function getReadOnlyDbConn() {
     let c = BetterSqliteHelper();
     makeMyPatches(c, transformJsonToStr, transformStrToJson);
-    serverUtils.assertTrue(_.size(colsThatAreJson) > 0, "We expect lookForJsonFields to have been called by this point.")
+    assertTrue(_.size(colsThatAreJson) > 0, "We expect lookForJsonFields to have been called by this point.")
     return {
         queryC: (...args) => c.queryC(...args),
         queryCFirstRow: (...args) => c.queryCFirstRow(...args),
         queryAnyCompany: (...args) => c.queryAnyCompany(...args),
         queryAnyCompanyFirstRow: (...args) => c.queryAnyCompanyFirstRow(...args),
         sqlAnyCompany: (q, ...args) => {
-            serverUtils.assertTrue(
+            assertTrue(
                 q.toLowerCase().startsWith('select '),
                 'query must be a select'
             );
@@ -145,7 +144,7 @@ export function getReadOnlyDbConn() {
 
 export async function startSqliteDbOnAppSetup() {
     if (process.argv.includes('--nukeExistingDb')) {
-        serverUtils.assertTrue(fsExistsSync(pathDirName(dbPath)));
+        assertTrue(fsExistsSync(pathDirName(dbPath)));
         for (let fullPath of listFilesInDir(pathDirName(dbPath))) {
             fullPath = fullPath.replace(/\\/g, '/');
             if (
@@ -177,12 +176,12 @@ function lookForJsonFields(db) {
                 const fields = db.queryAnyCompany(`PRAGMA table_info(${table.name})`); 
                 for (let field of fields) {
                     if (field.name.toString().endsWith('_json')) {
-                        serverUtils.assertTrue(['json', undefined].includes(colTypesSeen[field.name.toString().replace('_json', '')]), 'conflict json field', field.name);
+                        assertTrue(['json', undefined].includes(colTypesSeen[field.name.toString().replace('_json', '')]), 'conflict json field', field.name);
                         colTypesSeen[field.name.toString().replace('_json', '')] = 'json';
 
                         colsThatAreJson[field.name.toString()] = true;
                     } else {
-                        serverUtils.assertTrue(['not-json', undefined].includes(colTypesSeen[field.name.toString()]), 'conflict json field', field.name);
+                        assertTrue(['not-json', undefined].includes(colTypesSeen[field.name.toString()]), 'conflict json field', field.name);
                         colTypesSeen[field.name.toString()] = 'not-json';
                     }
                 }

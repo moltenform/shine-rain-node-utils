@@ -1,5 +1,5 @@
 import { isProduction } from './lowest-level-utils.js';
-import * as serverUtils from './jsutils.js';
+
 import { logErr } from './logging.js';
 import jwt from 'jsonwebtoken';
 
@@ -112,11 +112,11 @@ export function respondToServerErr(error, req, res, mode, code = 500) {
     if (req.method?.toLowerCase() === 'get') {
         let sHtml = template;
         sHtml = sHtml.replace('%%LOGOUT%%', ret.logYouOut ? 'true' : 'false');
-        sHtml = sHtml.replace('%%MSG%%', serverUtils.simpleSanitize(ret.msg));
+        sHtml = sHtml.replace('%%MSG%%', simpleSanitize(ret.msg));
         if (!isProduction()) {
             sHtml = sHtml.replace(
                 '%%DEBUGINFO%%',
-                serverUtils.simpleSanitize(error.toString())
+                simpleSanitize(error.toString())
             );
         }
 

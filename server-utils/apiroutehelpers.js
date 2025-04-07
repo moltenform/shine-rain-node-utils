@@ -1,9 +1,8 @@
 
 import { customAuthRequiredMiddleware_Admin, customAuthRequiredMiddleware_User } from './jwt-handling.js';
 import { logInfo } from './logging.js';
-import {  multerUploadInstance } from '../api/uploadSupportMulter.js';
 import RWLock from 'async-rwlock';
-import { getReadOnlyDbConn, getReadWriteDbConn_CallOnlyFromApiRouteHelpers } from '../api/businesslogic/schema.js';
+import { getReadOnlyDbConn, getReadWriteDbConn_CallOnlyFromApiRouteHelpers } from '../api/db/schema.js';
 import { wrapResponseInTryCatch } from './err-handling.js';
 
 
@@ -133,6 +132,8 @@ function getMiddleware(app, route, method, fnAsyncCallback) {
             arrMiddleware.push(multerUploadInstance.single("incomingFile"))
         }
         arrMiddleware.push(fnAsyncCallback)
+    } else {
+        throw new Error(`path must start with /public /private /admin`)
     }
 
     return arrMiddleware

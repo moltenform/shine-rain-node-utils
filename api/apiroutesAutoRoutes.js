@@ -11,11 +11,10 @@ import {
     listFilesInDir,
     listFilesUpToTwoDeep,
 } from '../server-utils/file-util-wrappers.js';
-import { assertEq } from '../server-utils/jsutils.js';
+import { assertEq, assertTrue } from '../server-utils/jsutils.js';
 import { fromWebflowTemplate } from '../views/fromWebflowTemplateHighlevel.js';
 import _ from 'lodash';
 
-import * as serverUtils from '../server-utils/jsutils.js';
 
 export class ApiRoutesAutoRoutes {
     static async Register(app) {
@@ -62,7 +61,7 @@ async function registerAutoRoutesImpl(app, pth) {
         if (module.onGet) {
             registerGetUsingDb(app, urlWithParams, async (req, res, conn) => {
                 // don't check for templateUrl existance yet, could be an internal redirect.
-                // serverUtils.assertTrue(fsExistsSync(templateUrl) || fsExistsSync(templateUrl.replace('.html', '.wf.html')), 'templatenotfound', templateUrl)
+                // assertTrue(fsExistsSync(templateUrl) || fsExistsSync(templateUrl.replace('.html', '.wf.html')), 'templatenotfound', templateUrl)
                 await module.onGet(req, res, conn, templateUrl);
             });
         } else {
@@ -76,7 +75,7 @@ async function registerAutoRoutesImpl(app, pth) {
 }
 
 function getUrlFromPath(s, suffix) {
-    serverUtils.assertTrue(s.endsWith(suffix));
+    assertTrue(s.endsWith(suffix));
     s = s.replace(suffix, '');
 
     let pts = s.split('/autoroutes/');

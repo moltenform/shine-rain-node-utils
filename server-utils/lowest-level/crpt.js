@@ -1,13 +1,14 @@
 
 import { readJsonFileAsync } from '../lowest-level-utils.js';
-import * as serverUtils from '../jsutils.js';
+
 import Cryptr from 'cryptr'
 import Crypto from 'crypto';
+import { assertTrue } from '../jsutils.js';
 
 
 const _credsOnce = await readJsonFileAsync('./.creds.json');
 export const cSecret = _credsOnce._cSecret;
-serverUtils.assertTrue(cSecret, 'secret not in json');
+assertTrue(cSecret, 'secret not in json');
 
 export function crptForward(text) {
     const cryptr = new Cryptr(cSecret);

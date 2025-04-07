@@ -1,7 +1,7 @@
 import jwt from 'jsonwebtoken';
 import _ from 'lodash';
 
-import * as serverUtils from '../../server-utils/jsutils.js';
+
 import {
     cookieTokenKeyAdmin,
     cookieTokenKeyUser,
@@ -20,6 +20,7 @@ import {
     shouldBreakOnExceptions_Disable,
     shouldBreakOnExceptions_Enable,
 } from '../../server-utils/logging.js';
+import { assertEq, assertTrue } from '../../server-utils/jsutils.js';
 
 /* (c) 2019 moltenform(Ben Fisher) */
 /* This file is released under the MIT license */
@@ -43,7 +44,7 @@ async function testSignIns() {
             results = await doPasswordSigninImpl(fakeReq, fakeRes, conn, cookieTokenKeyAdmin);
         } catch (e) {
             if (expectFailureMsg) {
-                serverUtils.assertTrue(
+                assertTrue(
                     e.toString().includes(expectFailureMsg),
                     `'${e.toString()}' did not include ${expectFailureMsg}`
                 );
@@ -57,7 +58,7 @@ async function testSignIns() {
         }
 
         if (!expectFailureMsg) {
-            serverUtils.assertEq(results, expectResults);
+            assertEq(results, expectResults);
         }
     };
 
@@ -83,7 +84,7 @@ async function testSignIns() {
     );
 
     // should not be able to use a dupe email address
-    await serverUtils.assertThrowAsync(
+    await assertThrowAsync(
         async () =>
             onPostSignupAdmin(
                 {
@@ -121,22 +122,22 @@ async function testJwt() {
     });
     // try read a valid cookie
     const gotPayload = jwt.verify(testToken, cSecret);
-    serverUtils.assertEq('testuser1', gotPayload.username);
-    serverUtils.assertEq('all', gotPayload.access);
+    assertEq('testuser1', gotPayload.username);
+    assertEq('all', gotPayload.access);
 
     // try reading an invalid cookie
     const modifyFirstChar = (s) => String.fromCharCode(s.charCodeAt(0) + 1) + s.slice(1);
-    serverUtils.assertEq('223', modifyFirstChar('123'));
-    serverUtils.assertThrow(() => jwt.verify(testToken + 'a', cSecret));
-    serverUtils.assertThrow(() => jwt.verify(testToken.slice(1, -1), cSecret));
-    serverUtils.assertThrow(() => jwt.verify(modifyFirstChar(testToken), cSecret));
+    assertEq('223', modifyFirstChar('123'));
+    assertThrow(() => jwt.verify(testToken + 'a', cSecret));
+    assertThrow(() => jwt.verify(testToken.slice(1, -1), cSecret));
+    assertThrow(() => jwt.verify(modifyFirstChar(testToken), cSecret));
 
     // try reading one that times out
     const testTokenTimeout = jwt.sign({ email: 'abcdefg' }, cSecret, {
         expiresIn: '3 seconds',
     });
     const got = jwt.verify(testTokenTimeout, cSecret);
-    serverUtils.assertEq('abcdefg', got.email);
-    await serverUtils.sleep(5 * 1000);
-    serverUtils.assertThrow(() => jwt.verify(testTokenTimeout, cSecret), 'expired');
+    assertEq('abcdefg', got.email);
+    await sleep(5 * 1000);
+    assertThrow(() => jwt.verify(testTokenTimeout, cSecret), 'expired');
 }

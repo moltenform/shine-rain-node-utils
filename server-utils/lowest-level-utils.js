@@ -1,5 +1,6 @@
-import * as serverUtils from './jsutils.js';
+
 import { fsExistsSync, fsReadFileAsync, osPlatform } from './file-util-wrappers.js';
+import { assertTrue } from './jsutils.js';
 
 /* (c) 2019 moltenform(Ben Fisher) */
 /* This file is released under the MIT license */
@@ -30,14 +31,14 @@ export function resetCwd() {
 export function getPathOnDisk() {
     let s = getPathRaw();
     s = s.replace(/\\/g, '/')
-    serverUtils.assertTrue(fsExistsSync(s), 'getPathRaw not exist');
-    serverUtils.assertTrue(s.split('/').length >= 2, 'why no root');
+    assertTrue(fsExistsSync(s), 'getPathRaw not exist');
+    assertTrue(s.split('/').length >= 2, 'why no root');
     const split = s.split('/');
     // asnode/server-utils/lowest-level-utils.js
     split.pop(); // asnode/server-utils
     split.pop(); // asnode
     const ret = split.join('/');
-    serverUtils.assertTrue(fsExistsSync(ret), 'getPath not exist');
+    assertTrue(fsExistsSync(ret), 'getPath not exist');
     return ret;
 }
 
@@ -74,19 +75,19 @@ export async function internalRedirectToOtherOnGet(path, newP1Param, req, res, r
     }
 
     const newTemplateUrl = getPathOnDisk() + path + '.html'
-    serverUtils.assertTrue(fsExistsSync(newTemplateUrl.replace('.html', '.wf.html')))
+    assertTrue(fsExistsSync(newTemplateUrl.replace('.html', '.wf.html')))
     const routeJsPath = getPathOnDisk() + path + '.route.js'
-    serverUtils.assertTrue(fsExistsSync(routeJsPath))
+    assertTrue(fsExistsSync(routeJsPath))
     const module = await import('file://' + routeJsPath)
     return module.onGet(req, res, readConn, newTemplateUrl, extraData)
 }
 
 export async function readJsonFileAsync(target, mustBeUpdatable = false) {
     if (mustBeUpdatable) {
-        serverUtils.assertTrue(target.endsWith('.updateable.json'), 'mustBeUpdatable');
+        assertTrue(target.endsWith('.updateable.json'), 'mustBeUpdatable');
     }
 
-    serverUtils.assertTrue(target.endsWith('.json'));
+    assertTrue(target.endsWith('.json'));
     const text = await fsReadFileAsync(target, 'utf-8');
     let ret;
     try {

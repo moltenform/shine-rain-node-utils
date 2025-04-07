@@ -2,6 +2,7 @@ import * as winston from 'winston';
 
 import { getPathOnDisk } from './lowest-level-utils.js';
 import { pathJoin } from './file-util-wrappers.js';
+import { jsutilsLoggingCallbacks } from './jsutils.js';
 
 /* (c) 2019 moltenform(Ben Fisher) */
 /* This file is released under the MIT license */
@@ -125,3 +126,7 @@ export function shouldBreakOnExceptions_Enable() {
         global.shouldBreakOnExceptions = true
     }
 }
+
+jsutilsLoggingCallbacks.shouldBreakOnExceptions_Disable = shouldBreakOnExceptions_Disable;
+jsutilsLoggingCallbacks.shouldBreakOnExceptions_Enable = shouldBreakOnExceptions_Enable;
+jsutilsLoggingCallbacks.logErr = logErr;

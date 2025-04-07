@@ -1,14 +1,16 @@
 import { v4 as uuidv4 } from 'uuid';
 
 import _ from 'lodash';
-import {
-    logErr,
-    shouldBreakOnExceptions_Disable,
-    shouldBreakOnExceptions_Enable,
-} from './logging.js';
 
 /* (c) 2019 moltenform(Ben Fisher) */
 /* This file is released under the MIT license */
+
+// avoid a small dependency loop by having the logging code register the callbacks here 
+export const jsutilsLoggingCallbacks = {
+    logErr: (s)=>{ console.error(s); },
+    shouldBreakOnExceptions_Disable: ()=>{},
+    shouldBreakOnExceptions_Enable: ()=>{},
+}
 
 export function genUuid() {
     return uuidv4();

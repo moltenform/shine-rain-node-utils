@@ -1,6 +1,6 @@
-import { fixWholeFile, getRawWebflowHtml, getLocalStrings, getCoreStrings } from './fromWebflowTemplate.js';
-import * as serverUtils from '../server-utils/jsutils.js';
-import { fsExistsSync } from '../server-utils/file-util-wrappers.js';
+
+import { fsExistsSync, pathBaseName } from '../server-utils/file-util-wrappers.js';
+import { assertTrue } from '../server-utils/jsutils.js';
 
 export async function fromWebflowTemplate(req, res, data, templateUrl) {
     templateUrl = templateUrl.replace(/\\/g, '/');
@@ -18,7 +18,7 @@ export async function fromWebflowTemplate(req, res, data, templateUrl) {
     let templateTech = 'use-njk'
     if (templateTech === 'use-njk') {
         // use njk
-        serverUtils.assertTrue(
+        assertTrue(
             fsExistsSync(templateUrl),
             'no fallback html found',
             templateUrl
@@ -36,8 +36,4 @@ function makeSafer(dataStringified) {
     return dataStringified;
 }
 
-
-if (getFilename(process.argv[1]) == getFilename(import.meta.url)) {
-    
-}
 

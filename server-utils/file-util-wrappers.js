@@ -2,9 +2,10 @@ import * as fs from 'fs';
 import * as path from 'path';
 import fspromises from 'node:fs/promises';
 import Os from 'os';
-import * as serverUtils from './jsutils.js';
+
 import { promptsAlert } from './pathfoundutils.js';
 import * as childProcess from 'child_process';
+import { assertTrue } from './jsutils.js';
 
 /* (c) 2019 moltenform(Ben Fisher) */
 /* This file is released under the MIT license */
@@ -44,13 +45,13 @@ export async function fsUnlinkAsyncIfExists(pth) {
 }
 
 export async function fsReadFileAsync(pth, encoding) {
-    serverUtils.assertTrue(typeof encoding === 'string');
-    serverUtils.assertTrue(fsExistsSync(pth), 'not exist ', pth);
+    assertTrue(typeof encoding === 'string');
+    assertTrue(fsExistsSync(pth), 'not exist ', pth);
     return fspromises.readFile(pth, { encoding: encoding });
 }
 
 export async function fsWriteFileAsync(pth, s, encoding) {
-    serverUtils.assertTrue(typeof encoding === 'string');
+    assertTrue(typeof encoding === 'string');
     return fspromises.writeFile(pth, s, { encoding: encoding });
 }
 
@@ -103,7 +104,7 @@ export function listFilesUpToTwoDeep(pth, suffix = '') {
 }
 
 export async function removeCompanyIndexDir(dir) {
-    serverUtils.assertTrue(dir.includes('company-index'));
+    assertTrue(dir.includes('company-index'));
     if (fsExistsSync(dir)) {
         await fspromises.rm(dir, { recursive: true, force: true });
     }
@@ -119,11 +120,11 @@ function isExecutableAllowed(s) {
     );
 }
 
-serverUtils.assertTrue(isExecutableAllowed('pdftotext.exe'));
-serverUtils.assertTrue(!isExecutableAllowed('pdftotext1.exe'));
+assertTrue(isExecutableAllowed('pdftotext.exe'));
+assertTrue(!isExecutableAllowed('pdftotext1.exe'));
 
 export function runProcessWaitFinishAndGetStandardOut(pathBin, argsToSend) {
-    serverUtils.assertTrue(
+    assertTrue(
         isExecutableAllowed(pathBin),
         'not allowed executable, you might need to update the allowedExecutables list'
     );

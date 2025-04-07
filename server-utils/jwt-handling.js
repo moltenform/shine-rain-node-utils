@@ -1,6 +1,6 @@
 import jwt from 'jsonwebtoken';
 import cookieParser from 'cookie-parser';
-import * as serverUtils from './jsutils.js';
+
 import {
     logErr,
     logWarn,
@@ -9,13 +9,9 @@ import {
 } from './logging.js';
 import { isProduction, readJsonFileAsync } from './lowest-level-utils.js';
 import {
-    getCurrentCompanyAndStateOrThrowSq,
-    personSearcherAllCompaniesSq,
-} from './dbhelpers.js';
-import {
     getReadOnlyDbConn,
     getReadWriteDbConn_CallOnlyFromApiRouteHelpers,
-} from '../api/businesslogic/schema.js';
+} from '../api/db/schema.js';
 import {
     HttpException,
     HttpException_Inactive,
@@ -23,9 +19,10 @@ import {
     HttpException_MustBeAnEe,
     respondToServerErr,
 } from './err-handling.js';
-import { EeAccessLevels } from '../public/assets/client-shared/shared/progSchema.js';
+
 import { crptMatchesExisting } from './lowest-level/crpt.js';
 import createHttpError from 'http-errors';
+import { assertTrue } from './jsutils.js';
 
 /* (c) 2019 moltenform(Ben Fisher) */
 /* This file is released under the MIT license */
@@ -33,7 +30,7 @@ import createHttpError from 'http-errors';
 const _credsOnce = await readJsonFileAsync('./.creds.json');
 export const cSecret = _credsOnce._cSecret;
 export const cCookieSecret = _credsOnce._cCookieSecret;
-serverUtils.assertTrue(cSecret && cCookieSecret, 'secret not in json');
+assertTrue(cSecret && cCookieSecret, 'secret not in json');
 
 export function jwtHandlingRunOnAppSetup(app) {
     app.use(cookieParser(cCookieSecret));
@@ -97,7 +94,7 @@ const customAuthRequiredMiddlewareImpl = (req, res, cookieTokenKey) => {
             getReadOnlyDbConn(),
             cookieTokenKey
         );
-        serverUtils.assertTrue(
+        assertTrue(
             cookieTokenKey === cookieTokenKeyAdmin ? stHere.admin.email : stHere.ee.email,
             'Not found'
         );
@@ -116,7 +113,7 @@ export async function doPasswordSigninImpl(req, res, conn, cookieTokenKey) {
     // currently we only do this method for admins.
     // intentional sleep, make brute force harder.
     if (isProduction()) {
-        await serverUtils.sleep(1000);
+        await sleep(1000);
     }
 
     const data = {
@@ -125,7 +122,7 @@ export async function doPasswordSigninImpl(req, res, conn, cookieTokenKey) {
     };
 
     const isAdmin = true;
-    serverUtils.assertTrue(cookieTokenKey === cookieTokenKeyAdmin);
+    assertTrue(cookieTokenKey === cookieTokenKeyAdmin);
 
     try {
         let found = personSearcherAllCompaniesSq(conn, isAdmin, 'email', data.email);
@@ -156,9 +153,6 @@ export async function doPasswordSigninImpl(req, res, conn, cookieTokenKey) {
         // cookie expires in 100 days, that way we can have a better error msg when creds expire due to timeout.
         // it will only actually let you log in for an hour though.
         const cookieMillisecondsLifetime = 100 * 24 * 60 * 60 * 1000;
-
-        // one hour timeout is way too annoying for dev work.  why is it so short anyway?
-        // const jwtLifetime = '1 hr';
         const jwtLifetime = '7 days';
         const payload = {
             loggedInId: found.adminId,
@@ -177,81 +171,6 @@ export async function doPasswordSigninImpl(req, res, conn, cookieTokenKey) {
         if (e.message === 'No person found' || e.message === 'incorrect password') {
             throw new HttpException(400, e.message);
         }
-        throw e;
-    }
-}
-
-export async function makeSignedInFromLink(code, req, res) {
-    // currently we only do this method for ees.
-
-    try {
-        let payloadIncoming = null;
-        let loggedInId = null;
-
-        try {
-            payloadIncoming = jwt.verify(code, cSecret);
-            loggedInId = payloadIncoming.id;
-            serverUtils.assertTrue(
-                payloadIncoming.a === 'signin' || payloadIncoming.a === 'invite'
-            );
-        } catch (e) {
-            respondToServerErr(HttpException_InvalidCode(), req, res, 'authFail', 401);
-            return false;
-        }
-
-        // check that it is a valid person id
-        const conn = getReadWriteDbConn_CallOnlyFromApiRouteHelpers();
-        const mockReq = {
-            customAuthRequiredMiddlewareResult: {
-                [cookieTokenKeyUser]: { loggedInId: loggedInId },
-            },
-        };
-
-        // update last login
-        const stFromHere = getCurrentCompanyAndStateOrThrowSq(
-            mockReq,
-            conn,
-            cookieTokenKeyUser
-        );
-        if (!stFromHere?.ee?.email) {
-            respondToServerErr(HttpException_MustBeAnEe(), req, res, 'authFail', 401);
-            return false;
-        }
-        if (stFromHere.ee.accessLevel < EeAccessLevels.canAccess) {
-            respondToServerErr(HttpException_MustBeAnEe(), req, res, 'authFail', 401);
-            return false;
-        }
-
-        if (!stFromHere.ee.isValidAndEmailVerified && payloadIncoming.a !== 'invite') {
-            respondToServerErr(HttpException_Inactive(), req, res, 'authFail', 401);
-            return false;
-        }
-
-        const newEeInfo = { ...stFromHere.ee.eeInfo, lastLogin: Date.now() };
-        stFromHere.conn.updateC(
-            stFromHere.companyId,
-            'Ees',
-            { eeInfo: newEeInfo, isValidAndEmailVerified: 1 },
-            { eeId: stFromHere.ee.eeId }
-        );
-
-        // cookie expires in 200 days
-        const millisecondsLifetime = 200 * 24 * 1000 * 60 * 60;
-        const payload = {
-            loggedInId: loggedInId,
-        };
-
-        // jwt expires in 1 year
-        // hard-coded to cookieTokenKeyUser because we'd never give an admin this much access
-        res.cookie(cookieTokenKeyUser, jwt.sign(payload, cSecret, { expiresIn: '1 year' }), {
-            sameSite: 'strict',
-            httpOnly: true,
-            signed: true,
-            expires: new Date(Date.now() + millisecondsLifetime),
-        });
-        return { loggedInId: loggedInId };
-    } catch (e) {
-        console.log(e);
         throw e;
     }
 }
