@@ -8,9 +8,12 @@
 <br/><br/><br/>
 Value passed from server is "{{ abc }}".
 <br/><br/><br/>
-If the above says "def", then this page is working.
+Each time clicked, should increase.
 <br/><br/><br/>
-<button id="btn">Test Database Rollback</button>
+<button id="btnBegin">Begin the test</button>
+<button id="btnIncr">Increment counter</button>
+<button id="btnIncrJson">Increment counter in json</button>
+<button id="btnTestRollback">Test rollback (should cause no changes)</button>
 <script>
     import * as pageLogic from '/assets/client-shared/pagelogic.js';
  
@@ -52,3 +55,4 @@ async function runTest() {
 
 
 {% endblock %}
+

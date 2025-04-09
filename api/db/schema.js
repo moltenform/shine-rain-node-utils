@@ -1,5 +1,5 @@
 import BetterSqliteHelper from 'better-sqlite3-helper';
-import { getPathOnDisk } from '../../server-utils/lowest-level-utils.js';
+import { getPathOnDisk } from '../../server-utils/node-server-utils.js';
 
 import { makeMyPatches } from './schemaWrappers.js';
 import {
@@ -43,9 +43,9 @@ async function startNewDb() {
     makeMyPatches(db, transformJsonToStr, transformStrToJson);
     lookForJsonFields(db);
     
-    db.insertWithoutValidationAnyCompany(`Metadata`, {
+    db.insertWithoutValidationAnyOrganization(`Metadata`, {
         MetadataId: genUuid(),
-        schemaVersion: 2,
+        schemaVersion: 1,
         countStaleIndexedDocuments: 0,
     });
 
@@ -72,15 +72,9 @@ function loadExistingDb() {
     makeMyPatches(db, transformJsonToStr, transformStrToJson);
     lookForJsonFields(db);
 
-    let got = db.queryAnyCompanyFirstRow(`select schemaVersion from Metadata`);
-    if (got?.schemaVersion === 1) {
-        // It's ok to import a previous database from when before migration support was added.
-        db.updateAnyCompany(`Metadata`, { schemaVersion: 2}, { schemaVersion: 1});
-        got = db.queryAnyCompanyFirstRow(`select schemaVersion from Metadata`);
-    }
-
+    let got = db.queryAnyOrganizationFirstRow(`select schemaVersion from Metadata`);
     assertEq(
-        2,
+        1,
         parseInt(got?.schemaVersion),
         'different or missing schema version in db. please delete the db and re-run node app.js --startNewDbFile'
     );
@@ -110,16 +104,14 @@ export function getReadOnlyDbConn() {
     makeMyPatches(c, transformJsonToStr, transformStrToJson);
     assertTrue(_.size(colsThatAreJson) > 0, "We expect lookForJsonFields to have been called by this point.")
     return {
-        queryC: (...args) => c.queryC(...args),
-        queryCFirstRow: (...args) => c.queryCFirstRow(...args),
-        queryAnyCompany: (...args) => c.queryAnyCompany(...args),
-        queryAnyCompanyFirstRow: (...args) => c.queryAnyCompanyFirstRow(...args),
-        sqlAnyCompany: (q, ...args) => {
+        queryAnyOrganization: (...args) => c.queryAnyOrganization(...args),
+        queryAnyOrganizationFirstRow: (...args) => c.queryAnyOrganizationFirstRow(...args),
+        sqlAnyOrganization: (q, ...args) => {
             assertTrue(
                 q.toLowerCase().startsWith('select '),
                 'query must be a select'
             );
-            return c.sqlAnyCompany(q, ...args);
+            return c.sqlAnyOrganization(q, ...args);
         },
         update: () => {
             throw new Error('method disabled in view only mode');
@@ -167,11 +159,11 @@ export async function startSqliteDbOnAppSetup() {
 const colsThatAreJson = {};
 function lookForJsonFields(db) {
     const colTypesSeen = {}
-    const table_list = db.queryAnyCompany(`PRAGMA table_list;`);
+    const table_list = db.queryAnyOrganization(`PRAGMA table_list;`);
     for (let table of table_list) {
         if (!table.name.includes('sqlite')) { // skip internal tables
             if (table.name.match(/^[a-zA-Z0-9_-]+$/)) { // all alphanumeric; no injection risk
-                const fields = db.queryAnyCompany(`PRAGMA table_info(${table.name})`); 
+                const fields = db.queryAnyOrganization(`PRAGMA table_info(${table.name})`); 
                 for (let field of fields) {
                     if (field.name.toString().endsWith('_json')) {
                         assertTrue(['json', undefined].includes(colTypesSeen[field.name.toString().replace('_json', '')]), 'conflict json field', field.name);

@@ -15,6 +15,7 @@
     "tests": "NODE_ENV=testing node api/test/tests.js"
   },
   "dependencies": {
+    "@root/walk": "^1.1.0",
     "async-rwlock": "~1.1.1",
     "bcryptjs": "~2.4.3",
     "better-sqlite3-helper": "~3.1.7",

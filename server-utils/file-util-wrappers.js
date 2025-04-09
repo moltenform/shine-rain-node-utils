@@ -2,6 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import fspromises from 'node:fs/promises';
 import Os from 'os';
+import { walk } from "@root/walk";
 
 import { promptsAlert } from './path-found-utils.js';
 import * as childProcess from 'child_process';
@@ -101,6 +102,30 @@ export function listFilesUpToTwoDeep(pth, suffix = '') {
         results = results.concat(listFilesInDir(subdir, suffix));
     }
     return results;
+}
+
+export async function listFilesRecurse(pth, suffix = '', opts={
+    includeFiles:true,
+    includeDirs:false,
+}) {
+    const results = []
+    const cb = async (err, pathname, dirent) => {
+        if (err) {
+          throw err;
+        }
+
+        if (suffix && !pathname.endsWith(suffix)) {
+          return;
+        }
+
+        if (opts.includeFiles && dirent.isFile()) {
+          results.push(pathname);
+        } else if (opts.includeDirs && dirent.isDirectory()) {
+          results.push(pathname);
+        }
+      };
+    await walk(pth, cb);
+    return results
 }
 
 export async function removeCompanyIndexDir(dir) {

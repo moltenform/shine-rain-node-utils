@@ -9,7 +9,7 @@ import {
     getPortNumber,
     isProduction,
     resetCwd,
-} from './server-utils/lowest-level-utils.js';
+} from './server-utils/node-server-utils.js';
 import { jwtHandlingRunOnAppSetup } from './server-utils/jwt-handling.js';
 import { logInfo, shouldBreakOnExceptions_Enable } from './server-utils/logging.js';
 import { startSqliteDbOnAppSetup } from './api/db/schema.js';
@@ -59,10 +59,7 @@ app.use(express.static(pathJoin(rootdir, 'public'), { maxAge: '1hr', cacheContro
 // without the limit:15mb, cannot upload files
 app.use(express.json({ limit: '15mb' }));
 
-const useJwtAuth = false;
-if (useJwtAuth) {
-    jwtHandlingRunOnAppSetup(app);
-}
+jwtHandlingRunOnAppSetup(app);
 
 const continueStartingServer = await startSqliteDbOnAppSetup();
 

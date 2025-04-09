@@ -1,6 +1,6 @@
 import * as winston from 'winston';
 
-import { getPathOnDisk } from './lowest-level-utils.js';
+import { getPathOnDisk } from './node-server-utils.js';
 import { pathJoin } from './file-util-wrappers.js';
 import { jsutilsLoggingCallbacks } from './jsutils.js';
 

@@ -4,12 +4,12 @@ import {
     registerPost,
     registerPostUsingDb,
 } from '../server-utils/api-route-helpers.js';
-import { getPathOnDisk } from '../server-utils/lowest-level-utils.js';
+import { getPathOnDisk } from '../server-utils/node-server-utils.js';
 import {
     fsExistsSync,
     listDirsInDir,
     listFilesInDir,
-    listFilesUpToTwoDeep,
+    listFilesRecurse,
 } from '../server-utils/file-util-wrappers.js';
 import { assertEq, assertTrue } from '../server-utils/jsutils.js';
 import { fromWebflowTemplate } from '../views/fromWebflowTemplateHighlevel.js';
@@ -31,7 +31,7 @@ export class ApiRoutesAutoRoutes {
 // map all .client.js files to be static files
 // note: no authorization is needed for these, even if they are in /admin or /private
 async function registerAutoRoutesClientJs(app, pth) {
-    const found = listFilesUpToTwoDeep(pth, '.client.js');
+    const found = await listFilesRecurse(pth, '.client.js');
     for (let jsPth of found) {
         const url = getUrlFromPath(jsPth.replace(/\\/g, '/'), '.client.js');
         const route = `/clientjs` + url + '.client.js';
@@ -44,7 +44,7 @@ async function registerAutoRoutesClientJs(app, pth) {
 }
 
 async function registerAutoRoutesImpl(app, pth) {
-    const found = listFilesUpToTwoDeep(pth, '.route.js');
+    const found = await listFilesRecurse(pth, '.route.js');
 
     // preemptively load them. 1) better for security 2) catch any syntax errors sooner
     for (let jsPth of found) {

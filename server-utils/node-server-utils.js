@@ -34,7 +34,7 @@ export function getPathOnDisk() {
     assertTrue(fsExistsSync(s), 'getPathRaw not exist');
     assertTrue(s.split('/').length >= 2, 'why no root');
     const split = s.split('/');
-    // asnode/server-utils/lowest-level-utils.js
+    // asnode/server-utils/node-server-utils.js
     split.pop(); // asnode/server-utils
     split.pop(); // asnode
     const ret = split.join('/');

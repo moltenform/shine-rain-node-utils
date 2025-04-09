@@ -1,13 +1,19 @@
+
 -- Up
-CREATE TABLE `users` (
-  id VARCHAR PRIMARY KEY,
-  firstName TEXT NOT NULL,
-  lastName TEXT NOT NULL,
+CREATE TABLE `employees` (
+  id PRIMARY KEY,
+  first_name NOT NULL,
+  last_name NOT NULL,
   email,
   counter,
-  -- demonstrates our json feature
-  info_json
+  info_json -- demonstrate our json helpers
+);
+
+CREATE TABLE IF NOT EXISTS `Metadata` (
+  metadataId PRIMARY KEY NOT NULL,
+  schemaVersion
 );
 
 -- Down
-DROP TABLE IF EXISTS `users`;
+DROP TABLE IF EXISTS `employees`;
+DROP TABLE IF EXISTS `metadata`;
