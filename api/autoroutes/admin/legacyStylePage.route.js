@@ -9,17 +9,21 @@ export async function onGet(req, res, readConn, templateUrl) {
 }
 
 export async function onPost(req, res, conn) {
-    if (req.body.action === 'increaseCounter') {
-        const selectedRow = conn.getFurstRowC('select * from users where id="test"')
-        if (!selectedRow) {
-            conn.insertWithoutValidationAnyOrganization('users', { id: 'test', firstName: 'bob', lastName: 'smith', counter: 1, info: {counterInJson: 100}  })
-        } else {
-            conn.updateAnyOrganization('users', { counter: selectedRow.counter + 1, info: {counterInJson: selectedRow.info.counterInJson + 1} 
-            }, { id: 'test' })
-        }
-    } else if (req.body.action === 'testDatabaseRollback') {
-        conn.updateAnyOrganization('users', { counter: 0}, {id: 'test'}, {noChangesOk: true})
+    const existingRow = conn.getFirstRow('select * from users where id="test"')
+    if (!existingRow && req.body.action !== 'btnBegin') {
+        throw new Error('Please press begin test.')
+    }
+
+    if (req.body.action === 'btnBegin') {
+        conn.replace('users', {id: 'testEmployee', firstName: 'bob', lastName: 'smith', counter: 1, info: {counterInJson: 100}})
+    } else if (req.body.action === 'btnIncr') {
+        conn.update('users', {id: 'testEmployee', firstName: 'bob', lastName: 'smith', counter: existingRow.counter+1, info: {counterInJson: 100}})
+    } else if (req.body.action === 'btnIncrJson') {
+        conn.update('users', {id: 'testEmployee', firstName: 'bob', lastName: 'smith', counter: 1, info: {counterInJson: existingRow.counterInJson+1}})
+    } else if (req.body.action === 'btnTestRollback') {
+        conn.replace('users', {id: 'testEmployee', firstName: 'bob--changed', lastName: 'smith--changed', counter: 1, info: {counterInJson: 100}})
         throw new Error('intentional error to test rollback');
+
     } else {
         throw new Error('unknown action: ' + req.body.action);
     }

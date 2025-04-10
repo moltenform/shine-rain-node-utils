@@ -145,8 +145,10 @@ function isExecutableAllowed(s) {
     );
 }
 
+assertTrue(isExecutableAllowed('pdftotext'));
 assertTrue(isExecutableAllowed('pdftotext.exe'));
 assertTrue(!isExecutableAllowed('pdftotext1.exe'));
+assertTrue(!isExecutableAllowed('pdftotext.png'));
 
 export function runProcessWaitFinishAndGetStandardOut(pathBin, argsToSend) {
     assertTrue(
