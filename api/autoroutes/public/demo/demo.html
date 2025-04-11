@@ -1,0 +1,18 @@
+
+
+{% extends "index.njk.html" %} 
+
+
+{% block content %}
+
+<br/><br/><br/>
+Value passed from server is "{{ abc }}".
+<br/><br/><br/>
+
+<button id="btnBegin">Begin the test</button>
+<button id="btnIncr">Increment counter</button>
+<button id="btnIncrJson">Increment counter in json</button>
+<button id="btnTestRollback">Test rollback (should cause no changes)</button>
+
+{% endblock %}
+

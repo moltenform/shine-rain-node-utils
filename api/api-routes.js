@@ -2,7 +2,7 @@ import {
     cookieTokenKeyAdmin,
     cookieTokenKeyUser,
     doSignoutImpl,
-} from '../server-utils/jwt-handling.js';
+} from '../server-utils/server-feature-jwt.js';
 
 import {
     registerGetUsingDb,

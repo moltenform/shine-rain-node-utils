@@ -1,17 +1,26 @@
 
-import { customAuthRequiredMiddleware_Admin, customAuthRequiredMiddleware_User } from './jwt-handling.js';
+import { customAuthRequiredMiddleware_Admin, customAuthRequiredMiddleware_User, getAdminMiddlewareList, getUserMiddlewareList } from './server-feature-jwt.js';
 import { logInfo } from './logging.js';
 import RWLock from 'async-rwlock';
 import { getReadOnlyDbConn, getReadWriteDbConn_CallOnlyFromApiRouteHelpers } from '../api/db/schema.js';
 import { wrapResponseInTryCatch } from './err-handling.js';
+import { multerUploadInstance } from './server-feature-uploads.js';
 
 
 /* (c) 2019 moltenform(Ben Fisher) */
 /* This file is released under the MIT license */
 
-function registerRouteLvl4(app, route, method,  fnAsyncCallback) {
-    // add the handler
+const DbAccessLevels = {
+    DbNone: 0,
+    DbRead: 1,
+    DbReadWrite: 2
+}
+
+function registerRouteLvl4(app, route, method, fnAsyncCallback) {
+    // get array of middleware callbacks
     const arrMiddleware = getMiddleware(app, route, method, fnAsyncCallback)
+    
+    // tell express to add the route
     app[method](route, arrMiddleware)
 }
 
@@ -34,11 +43,11 @@ function registerRouteLvl3(app, route, method,  fnAsyncCallback) {
 function registerRouteLvl2(app, route, method, dbNeeded, fnAsyncCallback) {
     // adds db connection
     const fnWrapped = async (req, res) => {
-        if (dbNeeded === 'db-none') {
+        if (dbNeeded === DbAccessLevels.DbNone) {
             return fnAsyncCallback(req, res)
         } else {
             const f = (dbconn)=>fnAsyncCallback(req, res, dbconn)
-            return runProtectedByLockAndTxn(f, dbNeeded === 'db-read-write', res)
+            return runProtectedByLockAndTxn(f, dbNeeded === DbAccessLevels.DbReadWrite, res)
         }
     }
     return registerRouteLvl3(app, route, method, fnWrapped)
@@ -53,21 +62,21 @@ function registerRouteLvl1(app, route, method, dbNeeded, fnAsyncCallback) {
 }
 
 export function registerPostUsingDb(app, route, fnAsyncCallback) {
-    return registerRouteLvl1(app, route, 'post', 'db-read-write', fnAsyncCallback)
+    return registerRouteLvl1(app, route, 'post', DbAccessLevels.DbReadWrite, fnAsyncCallback)
 }
 
 // it's up to the caller to call res.send()
 export function registerGetUsingDb(app, route, fnAsyncCallback) {
-    return registerRouteLvl1(app, route, 'get', 'db-read', fnAsyncCallback)
+    return registerRouteLvl1(app, route, 'get', DbAccessLevels.DbRead, fnAsyncCallback)
 }
 
 export function registerPost(app, route, fnAsyncCallback) {
-    return registerRouteLvl1(app, route, 'post', 'db-none', fnAsyncCallback)
+    return registerRouteLvl1(app, route, 'post', DbAccessLevels.DbNone, fnAsyncCallback)
 }
 
 // it's up to the caller to call res.send()
 export function registerGet(app, route, fnAsyncCallback) {
-    return registerRouteLvl1(app, route, 'get', 'db-none', fnAsyncCallback)
+    return registerRouteLvl1(app, route, 'get', DbAccessLevels.DbNone, fnAsyncCallback)
 }
 
 const lock = new RWLock.RWLock(); 
@@ -120,26 +129,23 @@ function getMiddleware(app, route, method, fnAsyncCallback) {
     let arrMiddleware
     if (route.startsWith('/public') || route === '/' || route === '/index' || route === '/index.html') {
         arrMiddleware = fnAsyncCallback
-    } else if (route.startsWith('/private')) {
-        arrMiddleware = [customAuthRequiredMiddleware_User]
+    } else if (route.startsWith('/user')) {
+        arrMiddleware = getUserMiddlewareList()
         if (route.includes('/this_route_uses_multer/')) {
             arrMiddleware.push(multerUploadInstance.single("incomingFile"))
         }
         arrMiddleware.push(fnAsyncCallback)
     } else if (route.startsWith('/admin')) {
-        arrMiddleware = [customAuthRequiredMiddleware_Admin]
+        arrMiddleware = getAdminMiddlewareList()
         if (route.includes('/this_route_uses_multer/')) {
             arrMiddleware.push(multerUploadInstance.single("incomingFile"))
         }
         arrMiddleware.push(fnAsyncCallback)
     } else {
-        throw new Error(`path must start with /public /private /admin`)
+        throw new Error(`path must start with /public /user /admin`)
     }
 
     return arrMiddleware
 }
 
-// if you need upload support,
-// import Multer and create an instance here.
-const multerUploadInstance = {}
 

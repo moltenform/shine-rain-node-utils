@@ -11,16 +11,8 @@ import {
 import _ from 'lodash';
 import { assertEq, assertTrue, genUuid } from '../../server-utils/jsutils.js';
 
-/*
- currently db methods are SYNC and not ASYNC
- pros of making them sync:
-        node is singlethreaded, so no race conditions where another write comes before our write
-            (although our reader-writer lock also helps prevent issues unless a GET is doing writes)
-        the better-sqlite npm module also uses synchronous functions for the same reason
-        all it takes is one await and there's now a window for race conditions bc it might switch contexts 
- pros of making them async
-        supports future move to dbs like postgres
-*/
+// Note that database methods are sync, not async.
+// The author of better-sqlite module explains the rationale in their repo.
 
 async function startNewDb() {
     if (fsExistsSync(dbPath)) {

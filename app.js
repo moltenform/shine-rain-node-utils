@@ -10,7 +10,7 @@ import {
     isProduction,
     resetCwd,
 } from './server-utils/node-server-utils.js';
-import { jwtHandlingRunOnAppSetup } from './server-utils/jwt-handling.js';
+import { jwtHandlingRunOnAppSetup } from './server-utils/server-feature-jwt.js';
 import { logInfo, shouldBreakOnExceptions_Enable } from './server-utils/logging.js';
 import { startSqliteDbOnAppSetup } from './api/db/schema.js';
 import { respondToServerErr } from './server-utils/err-handling.js';
