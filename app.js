@@ -10,13 +10,13 @@ import {
     isProduction,
     resetCwd,
 } from './server-utils/node-server-utils.js';
-import { jwtHandlingRunOnAppSetup } from './server-utils/server-feature-jwt.js';
 import { logInfo, shouldBreakOnExceptions_Enable } from './server-utils/logging.js';
-import { startSqliteDbOnAppSetup } from './api/db/schema.js';
+import { startSqliteDbOnAppSetup } from './server-utils/db/schema.js';
 import { respondToServerErr } from './server-utils/err-handling.js';
 import { runProtectedByLockAndTxn } from './server-utils/api-route-helpers.js';
 import { osPlatform, pathBaseName, pathJoin } from './server-utils/file-util-wrappers.js';
 import { createProxyMiddleware } from 'http-proxy-middleware';
+import { jwtHandlingRunOnAppSetup } from './server-utils/server-feature-jwt.js';
 
 // If using nodemon, remember to specify only to watch .js extension changes.
 // By default it watches .json changes too - which is not good because

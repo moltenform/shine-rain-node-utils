@@ -9,6 +9,16 @@ for (let id of btnIds) {
     })    
 }
 
+pageLogic.byId('btnTestOtherInternalApi').addEventListener('click', async ()=>{
+    const results = await pageLogic.callApiOrThrow('/public/example-simple', 'post',  {action: id})
+    if (results.value === 123) {
+        alert('Got expected value')
+    } else {
+        alert('Did not get expected value')
+    }
+})
+
+
 pageLogic.byId('btnTestRollback').addEventListener('click', async ()=>{
     var gotE
     try {
@@ -22,4 +32,3 @@ pageLogic.byId('btnTestRollback').addEventListener('click', async ()=>{
     
     document.reload()
 })
-

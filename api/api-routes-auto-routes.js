@@ -21,15 +21,15 @@ export class ApiRoutesAutoRoutes {
         const pth = getPathOnDisk();
         await registerAutoRoutesImpl(app, `${pth}/api/autoroutes/admin`);
         await registerAutoRoutesImpl(app, `${pth}/api/autoroutes/public`);
-        await registerAutoRoutesImpl(app, `${pth}/api/autoroutes/private`);
+        await registerAutoRoutesImpl(app, `${pth}/api/autoroutes/user`);
         await registerAutoRoutesClientJs(app, `${pth}/api/autoroutes/admin`);
         await registerAutoRoutesClientJs(app, `${pth}/api/autoroutes/public`);
-        await registerAutoRoutesClientJs(app, `${pth}/api/autoroutes/private`);
+        await registerAutoRoutesClientJs(app, `${pth}/api/autoroutes/user`);
     }
 }
 
 // map all .client.js files to be static files
-// note: no authorization is needed for these, even if they are in /admin or /private
+// note: no authorization is needed for these, even if they are in /admin or /user
 async function registerAutoRoutesClientJs(app, pth) {
     const found = await listFilesRecurse(pth, '.client.js');
     for (let jsPth of found) {

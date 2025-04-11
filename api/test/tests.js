@@ -1,8 +1,7 @@
 import { shouldBreakOnExceptions_Enable, gLog } from '../../server-utils/logging.js';
-import { doDocManageTests } from './doc-manage-tests.js';
 import { dbTests } from './test-db.js';
 import { testUtils } from './test-utils.js';
-import { startTestDbMode } from '../businesslogic/schema.js';
+import { startTestDbMode } from '../../server-utils/db/schema.js';
 
 /* (c) 2019 moltenform(Ben Fisher) */
 /* This file is released under the MIT license */
@@ -19,8 +18,8 @@ async function runTests() {
 
     shouldBreakOnExceptions_Enable();
     await startTestDbMode();
+    await dbTests();
     await testUtils();
-    await doDocManageTests();
 
     global.allTestsDone = true;
     console.log('all tests done');

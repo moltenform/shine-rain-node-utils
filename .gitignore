@@ -3,6 +3,9 @@
 db.db
 db.db-shm
 db.db-wal
+testdb.db
+testdb.db-shm
+testdb.db-wal
 
 # Logs
 logs

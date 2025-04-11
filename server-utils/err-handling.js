@@ -15,7 +15,7 @@ window.addEventListener('load', async ()=> {
     if (document.referrer && document.referrer.toString().includes('/admin/')) {
         document.getElementById('idLinkBack').href = '/public/signinadmin'
     }
-    if (document.referrer && document.referrer.toString().includes('/private/')) {
+    if (document.referrer && document.referrer.toString().includes('/user/')) {
         document.getElementById('idLinkBack').href = '/public/signinee'
     }
 })
@@ -69,7 +69,6 @@ export function respondToServerErr(error, req, res, mode, code = 500) {
                     error = HttpException_AccessDenied();
                 }    
             }
-            // ret.logYouOut = true;
             break;
         case 'internalErr':
             // add the error, sometimes user should be able to see it
@@ -189,7 +188,7 @@ export async function wrapResponseInTryCatch(req, res, fn) {
     }
 }
 
-// it's important to catch all errors here, or the entire node process will literally crash
+// it's important to catch all errors here, or the node process will crash
 export function runSetTimeoutHandlerAndCatch(tm, fn) {
     const fnWrapped = async () => {
         try {

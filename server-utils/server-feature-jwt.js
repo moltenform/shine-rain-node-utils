@@ -24,3 +24,7 @@ export function getAdminMiddlewareList() {
         return []
     }
 }
+
+export function jwtHandlingRunOnAppSetup() {
+
+}

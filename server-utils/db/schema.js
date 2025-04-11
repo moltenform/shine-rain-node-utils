@@ -26,7 +26,7 @@ async function startNewDb() {
         WAL: true, // automatically enable 'PRAGMA journal_mode = WAL'
         migrate: {
             table: 'migration',
-            migrationsPath: './api/db/migrations'
+            migrationsPath: './server-utils/db/migrations'
         }
     });
 
@@ -38,7 +38,6 @@ async function startNewDb() {
     db.insertWithoutValidationAnyOrganization(`Metadata`, {
         MetadataId: genUuid(),
         schemaVersion: 1,
-        countStaleIndexedDocuments: 0,
     });
 
     console.log('Complete.');
@@ -56,7 +55,7 @@ function loadExistingDb() {
         WAL: true, // automatically enable 'PRAGMA journal_mode = WAL'
         migrate: {
             table: 'migration',
-            migrationsPath: './api/db/migrations'
+            migrationsPath: './server-utils/db/migrations'
         }
     }); 
 
@@ -77,10 +76,9 @@ function loadExistingDb() {
 let dbPath = getPathOnDisk() + '/config/db.db';
 export async function startTestDbMode() {
     dbPath = getPathOnDisk() + '/config/testdb.db';
-    if (fsExistsSync(dbPath)) {
-        await fsUnlinkAsyncIfExists(dbPath);
-    }
-
+    await fsUnlinkAsyncIfExists(dbPath);
+    await fsUnlinkAsyncIfExists(dbPath.replace('.db', '.db-shm'));
+    await fsUnlinkAsyncIfExists(dbPath.replace('.db', '.db-wal'));
     await startNewDb();
 }
 

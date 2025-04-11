@@ -1,9 +1,9 @@
 
-import { readJsonFileAsync } from '../node-server-utils.js';
+import { readJsonFileAsync } from './node-server-utils.js';
 
 import Cryptr from 'cryptr'
 import Crypto from 'crypto';
-import { assertTrue } from '../jsutils.js';
+import { assertTrue } from './jsutils.js';
 
 
 const _credsOnce = await readJsonFileAsync('./.creds.json');

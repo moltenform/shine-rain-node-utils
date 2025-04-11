@@ -1,8 +1,3 @@
-import {
-    cookieTokenKeyAdmin,
-    cookieTokenKeyUser,
-    doSignoutImpl,
-} from '../server-utils/server-feature-jwt.js';
 
 import {
     registerGetUsingDb,
@@ -21,6 +16,9 @@ export class ApiRoutes {
     static async Register(app) {
         await ApiRoutesAutoRoutes.Register(app);
 
+        registerGetUsingDb(app, '/public/example-simple', async (req, res, conn) => {
+            res.send({ value: 123 });
+        });
         registerGetUsingDb(app, '/public/example-get/:p1', async (req, res, conn) => {
             res.send({ result: `called api with param ${req.params.p1}` });
         });

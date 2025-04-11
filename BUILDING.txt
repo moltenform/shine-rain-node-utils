@@ -1,8 +1,7 @@
 
-- Install node (tested on node 20)
+- Install node
 - Open a terminal, `cd` to directory that contains `package.json`.
 - Run `npm install`
-    - If you are on windows and get gyp errors, install or update visual studio (or a windows sdk) so that there is a C/C++ compiler
 - Because this is the first time running the app, run
     - `node app.js --startNewDbFile`
 - Run
@@ -30,3 +29,5 @@ If you open the project in VSCode, there are some commands under Run and Debug,
         - The Chrome Dev Tools is now attached to the VSCode instance.
         - You can set breakpoints and step through the code.
 
+ Tested on node 20. If you are on windows and get gyp errors, install or update visual studio (or a windows sdk) so that there is a C/C++ compiler.
+ 

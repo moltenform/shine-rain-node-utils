@@ -1,5 +1,4 @@
 {
-    // the client directory is opened as its own project.
     "files.exclude": {
       "node_modules": true,
     },

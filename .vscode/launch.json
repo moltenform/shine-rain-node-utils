@@ -44,13 +44,5 @@
             "/clientjs": "${workspaceRoot}/api/autoroutes",
            }
         },
-
-        //{
-        //    "type": "node",
-        //    "request": "launch",
-        //    "name": "Launch Webpack",
-        //    "program": "${workspaceFolder}/node_modules/webpack/bin/webpack.js start"
-        //    "program": "${workspaceFolder}/node_modules/@craco/craco/dist/scripts/start.js"
-        //}
     ]
 }
