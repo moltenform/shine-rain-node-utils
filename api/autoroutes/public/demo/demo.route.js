@@ -1,7 +1,7 @@
 
 export async function onGet(req, res, readConn, templateUrl) {
     const state = {}
-    const countRows = readConn.getCountAnyOrganizationFromDb('select count(*) as whatToCount from Employees where true')
+    const countRows = readConn.getCount_SkipOwnerCheckFromDb('select count(*) as whatToCount from Employees where true')
     const selectedRow = readConn.getFurstRowC('select * from Employees where id="test"') || { counter: 0, info: {counterInJson: 0} };
 
     let data = { selectedRow: selectedRow };

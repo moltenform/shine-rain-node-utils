@@ -35,7 +35,7 @@ async function startNewDb() {
     makeMyPatches(db, transformJsonToStr, transformStrToJson);
     lookForJsonFields(db);
     
-    db.insertWithoutValidationAnyOrganization(`Metadata`, {
+    db.insertWithoutValidation_SkipOwnerCheck(`Metadata`, {
         MetadataId: genUuid(),
         schemaVersion: 1,
     });
@@ -63,7 +63,7 @@ function loadExistingDb() {
     makeMyPatches(db, transformJsonToStr, transformStrToJson);
     lookForJsonFields(db);
 
-    let got = db.queryAnyOrganizationFirstRow(`select schemaVersion from Metadata`);
+    let got = db.query_SkipOwnerCheckFirstRow(`select schemaVersion from Metadata`);
     assertEq(
         1,
         parseInt(got?.schemaVersion),
@@ -94,14 +94,14 @@ export function getReadOnlyDbConn() {
     makeMyPatches(c, transformJsonToStr, transformStrToJson);
     assertTrue(_.size(colsThatAreJson) > 0, "We expect lookForJsonFields to have been called by this point.")
     return {
-        queryAnyOrganization: (...args) => c.queryAnyOrganization(...args),
-        queryAnyOrganizationFirstRow: (...args) => c.queryAnyOrganizationFirstRow(...args),
-        sqlAnyOrganization: (q, ...args) => {
+        query_SkipOwnerCheck: (...args) => c.query_SkipOwnerCheck(...args),
+        query_SkipOwnerCheckFirstRow: (...args) => c.query_SkipOwnerCheckFirstRow(...args),
+        sql_SkipOwnerCheck: (q, ...args) => {
             assertTrue(
                 q.toLowerCase().startsWith('select '),
                 'query must be a select'
             );
-            return c.sqlAnyOrganization(q, ...args);
+            return c.sql_SkipOwnerCheck(q, ...args);
         },
         update: () => {
             throw new Error('method disabled in view only mode');
@@ -149,11 +149,11 @@ export async function startSqliteDbOnAppSetup() {
 const colsThatAreJson = {};
 function lookForJsonFields(db) {
     const colTypesSeen = {}
-    const table_list = db.queryAnyOrganization(`PRAGMA table_list;`);
+    const table_list = db.query_SkipOwnerCheck(`PRAGMA table_list;`);
     for (let table of table_list) {
         if (!table.name.includes('sqlite')) { // skip internal tables
             if (table.name.match(/^[a-zA-Z0-9_-]+$/)) { // all alphanumeric; no injection risk
-                const fields = db.queryAnyOrganization(`PRAGMA table_info(${table.name})`); 
+                const fields = db.query_SkipOwnerCheck(`PRAGMA table_info(${table.name})`); 
                 for (let field of fields) {
                     if (field.name.toString().endsWith('_json')) {
                         assertTrue(['json', undefined].includes(colTypesSeen[field.name.toString().replace('_json', '')]), 'conflict json field', field.name);
