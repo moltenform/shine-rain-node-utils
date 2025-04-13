@@ -1,29 +1,38 @@
 
+const ownerId = 'testEmployeeId'
+const docId = 'testDoc'
+
 export async function onGet(req, res, readConn, templateUrl) {
     const state = {}
-    const countRows = readConn.getCount_SkipOwnerCheckFromDb('select count(*) as whatToCount from Employees where true')
-    const selectedRow = readConn.getFurstRowC('select * from Employees where id="test"') || { counter: 0, info: {counterInJson: 0} };
-
-    let data = { selectedRow: selectedRow };
+    const row = readConn.queryFirstRowChecked(ownerId, 'EmployeeDocuments', 'id= ?', docId)
+    let data = { row: row || 'Row not yet created.' };
     res.render(templateUrl, data);
 }
 
 export async function onPost(req, res, conn) {
-    const existingRow = conn.getFirstRow('select * from Employees where id="test"')
-    if (!existingRow && req.body.action !== 'btnBegin') {
-        throw new Error('Please press begin test.')
+    const row = conn.queryFirstRowChecked(ownerId, 'EmployeeDocuments', 'id= ?', docId)
+    if (!row) {
+        // create the Employees row if it doesn't yet exist
+        conn.insertSkipOwnerCheck('Employees', {id: ownerId, firstName: 'bob', lastName: 'smith', })
+
+        // create the EmployeeDocuments row if it doesn't yet exist
+        conn.insertChecked(ownerId, 'EmployeeDocuments', {id: docId, counter: 1, info: {counterInJson: 100, otherData: 1}})
     }
+    
 
     if (req.body.action === 'btnBegin') {
-        conn.replace('Employees', {id: 'testEmployee', firstName: 'bob', lastName: 'smith', counter: 1, info: {counterInJson: 100}})
+        // reset count back to 1
+        conn.updateChecked(ownerId, 'EmployeeDocuments', {id: docId, counter: 1, info: {counterInJson: 100, otherData: 1}})
     } else if (req.body.action === 'btnIncr') {
-        conn.update('Employees', {id: 'testEmployee', firstName: 'bob', lastName: 'smith', counter: existingRow.counter+1, info: {counterInJson: 100}})
+        // add 1 to the field
+        conn.updateChecked(ownerId, 'EmployeeDocuments', { counter: row.counter+1}, {id: docId})
     } else if (req.body.action === 'btnIncrJson') {
-        conn.update('Employees', {id: 'testEmployee', firstName: 'bob', lastName: 'smith', counter: 1, info: {counterInJson: existingRow.counterInJson+1}})
+        // add 1 to the json field
+        conn.updateChecked(ownerId, 'EmployeeDocuments', { info: {... row.info, counterInJson: row.info.counterInJson+1} }, {id: docId})
     } else if (req.body.action === 'btnTestRollback') {
-        conn.replace('Employees', {id: 'testEmployee', firstName: 'bob--changed', lastName: 'smith--changed', counter: 1, info: {counterInJson: 100}})
+        // set it to 9999 -- but this change should get rolled back and not applied
+        conn.updateChecked(ownerId, 'EmployeeDocuments', {id: docId, counter: 9999, info: {counterInJson: 9999}})
         throw new Error('intentional error to test rollback');
-
     } else {
         throw new Error('unknown action: ' + req.body.action);
     }

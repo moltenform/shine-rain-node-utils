@@ -10,7 +10,7 @@ for (let id of btnIds) {
 }
 
 pageLogic.byId('btnTestOtherInternalApi').addEventListener('click', async ()=>{
-    const results = await pageLogic.callApiOrThrow('/public/example-simple', 'post',  {action: id})
+    const results = await pageLogic.callApiOrThrow('/public/example-simple', 'post', {})
     if (results.value === 123) {
         alert('Got expected value')
     } else {

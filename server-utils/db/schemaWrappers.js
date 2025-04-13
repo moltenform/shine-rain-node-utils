@@ -52,18 +52,18 @@ export function makeMyPatches(dbConnection, transformJsonToStr, transformStrToJs
         return ret;
     };
     dbConnection.queryChecked = (ownerId, table, conditions, ...args) => {
-        serverUtils.assertTrue(table.match(/^[a-zA-Z0-9_]+$/), 'table name must be alphanumeric');
-        serverUtils.assertTrue(typeof conditions === 'string', 'conditions must be a string');
+        assertTrue(table.match(/^[a-zA-Z0-9_]+$/), 'table name must be alphanumeric');
+        assertTrue(typeof conditions === 'string', 'conditions must be a string');
         for (let arg of args) {
-            serverUtils.assertTrue(!(typeof arg === 'object' && !Array.isArray(arg)), 'params passed in cannot be objects');
+            assertTrue(!(typeof arg === 'object' && !Array.isArray(arg)), 'params passed in cannot be objects');
         }
         
         conditions = conditions === '(AllRecords)' ? 'true' : conditions;
-        const q = `select * from ${table} where employeeTeamId=? and ${conditions}`;
+        const q = `select * from ${table} where ownerId=? and ${conditions}`;
         
         return dbConnection.querySkipOwnerCheck(q, ownerId, ...args);
     };
-    dbConnection.querySkipOwnerCheckFirstRow = (...args) => {
+    dbConnection.queryFirstRowSkipOwnerCheck = (...args) => {
         if (args[0]) {
             assertTrue(typeof args[0] === 'string', `query must be a string`)
         }
@@ -71,15 +71,15 @@ export function makeMyPatches(dbConnection, transformJsonToStr, transformStrToJs
         const ret = dbConnection._origQueryFirstRow(...args);
         return transformStrToJson(ret);
     };
-    dbConnection.queryCheckedFirstRow = (ownerId, table, conditions, ...args) => {
-        serverUtils.assertTrue(table.match(/^[a-zA-Z0-9_]+$/), 'table name must be alphanumeric');
-        serverUtils.assertTrue(typeof conditions === 'string', 'conditions must be a string');
+    dbConnection.queryFirstRowChecked = (ownerId, table, conditions, ...args) => {
+        assertTrue(table.match(/^[a-zA-Z0-9_]+$/), 'table name must be alphanumeric');
+        assertTrue(typeof conditions === 'string', 'conditions must be a string');
         for (let arg of args) {
-            serverUtils.assertTrue(!(typeof arg === 'object' && !Array.isArray(arg)), 'params passed in cannot be objects');
+            assertTrue(!(typeof arg === 'object' && !Array.isArray(arg)), 'params passed in cannot be objects');
         }
         
         conditions = conditions === '(AllRecords)' ? 'true' : conditions;
-        const q = `select * from ${table} where employeeTeamId=? and ${conditions}`;
+        const q = `select * from ${table} where ownerId=? and ${conditions}`;
         return dbConnection.querySkipOwnerCheckFirstRow(q, ownerId, ...args);
     };
     dbConnection.updateSkipOwnerCheck = (a1, a2, criteria, opts) => {
@@ -95,7 +95,7 @@ export function makeMyPatches(dbConnection, transformJsonToStr, transformStrToJs
         return countChanges;
     };
     dbConnection.updateChecked = (ownerId, a1, a2, criteria, opts) => {
-        criteria = { ...criteria, employeeTeamId: ownerId };
+        criteria = { ...criteria, ownerId: ownerId };
         return dbConnection.updateSkipOwnerCheck(a1, a2, criteria, opts);
     };
     dbConnection.deleteSkipOwnerCheck = (a1, a2, opts) => {
@@ -110,7 +110,7 @@ export function makeMyPatches(dbConnection, transformJsonToStr, transformStrToJs
         return countChanges;
     };
     dbConnection.deleteChecked = (ownerId, a1, criteria, opts) => {
-        criteria = { ...criteria, employeeTeamId: ownerId };
+        criteria = { ...criteria, ownerId: ownerId };
         return dbConnection.deleteSkipOwnerCheck(a1, criteria, opts);
     };
     dbConnection.insertSkipOwnerCheck = (a1, a2, ...args) => {
@@ -120,7 +120,7 @@ export function makeMyPatches(dbConnection, transformJsonToStr, transformStrToJs
         return countChanges;
     };
     dbConnection.insertChecked = (ownerId, a1, a2, ...args) => {
-        a2 = { ...a2, employeeTeamId: ownerId };
+        a2 = { ...a2, ownerId: ownerId };
         return dbConnection.insertSkipOwnerCheck(a1, a2, ...args);
     };
     
@@ -132,7 +132,7 @@ export function makeMyPatches(dbConnection, transformJsonToStr, transformStrToJs
         return dbConnection._origReplace(table, record, ...args);
     }
     dbConnection.replaceChecked = (ownerId, table, record, ...args) => {
-        return dbConnection.replaceSkipOwnerCheck(table, {...record, employeeTeamId:ownerId}, ...args)
+        return dbConnection.replaceSkipOwnerCheck(table, {...record, ownerId:ownerId}, ...args)
     }
     dbConnection.sqlSkipOwnerCheck = (...args) => {
         return dbConnection.prepare(...args)

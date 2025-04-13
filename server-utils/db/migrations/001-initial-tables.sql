@@ -2,17 +2,17 @@
 -- Up
 CREATE TABLE `Employees` (
   id PRIMARY KEY,
-  employeeTeamId NOT NULL,
   firstName NOT NULL,
   lastName NOT NULL,
-  email,
-  counter,
-  info_json -- demonstrate our json helpers
 );
 
-CREATE TABLE `EmployeeTeams` (
-    id PRIMARY KEY,
-    name    
+CREATE TABLE `EmployeeDocuments` (
+  id PRIMARY KEY,
+  ownerId NOT NULL,
+  documentContent,
+  documentType,
+  counter,
+  info_json -- demonstrate our json helpers
 )
 
 CREATE TABLE IF NOT EXISTS `Metadata` (

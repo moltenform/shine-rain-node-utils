@@ -4,6 +4,8 @@
 /* This file is released under the MIT license */
 
 import { assertEq, assertTrue, isValidishUuid, modWrapAround, renderPrice } from "../../server-utils/jsutils.js";
+import { importLocalTime } from "../../server-utils/time-utils.js";
+
 
 export async function testUtils() {
     testIsValidishUuid();
@@ -68,4 +70,8 @@ function testModWrapAround() {
     assertEq(2, modWrapAround(-1, 3));
     assertEq(1, modWrapAround(-2, 3));
     assertEq(0, modWrapAround(-3, 3));
+}
+
+function testTime() {
+    importLocalTime('2020-01-01 00:00:00', 'America/Los_Angeles');
 }

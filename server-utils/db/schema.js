@@ -63,7 +63,7 @@ function loadExistingDb() {
     makeMyPatches(db, transformJsonToStr, transformStrToJson);
     lookForJsonFields(db);
 
-    let got = db.query_SkipOwnerCheckFirstRow(`select schemaVersion from Metadata`);
+    let got = db.queryFirstRowSkipOwnerCheck(`select schemaVersion from Metadata`);
     assertEq(
         1,
         parseInt(got?.schemaVersion),
@@ -149,11 +149,11 @@ export async function startSqliteDbOnAppSetup() {
 const colsThatAreJson = {};
 function lookForJsonFields(db) {
     const colTypesSeen = {}
-    const table_list = db.query_SkipOwnerCheck(`PRAGMA table_list;`);
+    const table_list = db.querySkipOwnerCheck(`PRAGMA table_list;`);
     for (let table of table_list) {
         if (!table.name.includes('sqlite')) { // skip internal tables
             if (table.name.match(/^[a-zA-Z0-9_-]+$/)) { // all alphanumeric; no injection risk
-                const fields = db.query_SkipOwnerCheck(`PRAGMA table_info(${table.name})`); 
+                const fields = db.querySkipOwnerCheck(`PRAGMA table_info(${table.name})`); 
                 for (let field of fields) {
                     if (field.name.toString().endsWith('_json')) {
                         assertTrue(['json', undefined].includes(colTypesSeen[field.name.toString().replace('_json', '')]), 'conflict json field', field.name);
