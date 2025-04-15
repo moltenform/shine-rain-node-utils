@@ -10,11 +10,6 @@ import { multerUploadInstance } from './server-feature-uploads.js';
 /* (c) 2019 moltenform(Ben Fisher) */
 /* This file is released under the MIT license */
 
-const DbAccessLevels = {
-    DbNone: 0,
-    DbRead: 1,
-    DbReadWrite: 2
-}
 
 function registerRouteLvl4(app, route, method, fnAsyncCallback) {
     // get array of middleware callbacks
@@ -47,6 +42,7 @@ function registerRouteLvl2(app, route, method, dbNeeded, fnAsyncCallback) {
             return fnAsyncCallback(req, res)
         } else {
             const f = (dbconn)=>fnAsyncCallback(req, res, dbconn)
+            assertTrue(dbNeeded === DbAccessLevels.DbRead || dbNeeded === DbAccessLevels.DbReadWrite);
             return runProtectedByLockAndTxn(f, dbNeeded === DbAccessLevels.DbReadWrite, res)
         }
     }
@@ -149,3 +145,8 @@ function getMiddleware(app, route, method, fnAsyncCallback) {
 }
 
 
+const DbAccessLevels = {
+    DbNone: 0,
+    DbRead: 1,
+    DbReadWrite: 2
+}

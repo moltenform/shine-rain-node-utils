@@ -18,7 +18,7 @@ export async function dbTests() {
         const teamId = 'team1'
         conn.insertWithoutValidation(teamId, 'EmployeeTeams', {id: teamId,})
         conn.insertWithoutValidation(teamId, 'Employees',  {id: 'testEmployee', firstName: 'bob', lastName: 'smith', counter: 1,})
-        const result = conn.queryFirstRowC(teamId, 'select * from Employees where id = ?', 'testEmployee')
+        const result = conn.queryFirstRowChecked(teamId, 'select * from Employees where id = ?', 'testEmployee')
         assertEq('bob', result.firstName)
         assertEq('smith', result.lastName)
         assertEq(1, result.counter)

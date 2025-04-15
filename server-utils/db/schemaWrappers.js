@@ -3,8 +3,9 @@
 import _ from 'lodash';
 import { assertTrue } from "../../server-utils/jsutils.js";
 
-// Employees can by default view the information of other employees in the same
-// team, but not other teams.
+// In our schema, there are ownerId fields for rows that are owned by a specific user.
+// queryChecked makes it convenient to filter rows based on who should have access.
+// querySkipOwnerCheck makes it inconvenient to bypass the check, since bypassing does not occur often.
 
 export function makeMyPatches(dbConnection, transformJsonToStr, transformStrToJson) {
     if (!dbConnection._origQuery) {
@@ -29,7 +30,7 @@ export function makeMyPatches(dbConnection, transformJsonToStr, transformStrToJs
         throw new Error('use queryChecked or querySkipOwnerCheck instead');
     };
     dbConnection.queryFirstRow = (...args) => {
-        throw new Error('use queryCheckedFirstRow or querySkipOwnerCheckFirstRow instead');
+        throw new Error('use queryCheckedFirstRow or queryFirstRowSkipOwnerCheck instead');
     };
     dbConnection.update = (...args) => {
         throw new Error('use updateChecked or updateSkipOwnerCheck instead');
@@ -80,7 +81,7 @@ export function makeMyPatches(dbConnection, transformJsonToStr, transformStrToJs
         
         conditions = conditions === '(AllRecords)' ? 'true' : conditions;
         const q = `select * from ${table} where ownerId=? and ${conditions}`;
-        return dbConnection.querySkipOwnerCheckFirstRow(q, ownerId, ...args);
+        return dbConnection.queryFirstRowSkipOwnerCheck(q, ownerId, ...args);
     };
     dbConnection.updateSkipOwnerCheck = (a1, a2, criteria, opts) => {
         a2 = transformJsonToStr(a2);

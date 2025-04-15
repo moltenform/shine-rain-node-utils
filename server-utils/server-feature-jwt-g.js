@@ -4,14 +4,10 @@
 // as a starting point
 
 const jwtHandlingImplemented = false
-function customAuthRequiredMiddleware_Admin() {
-}
-function customAuthRequiredMiddleware_User() {
-}
 
 export function getUserMiddlewareList() {
     if (jwtHandlingImplemented) {
-        return [customAuthRequiredMiddleware_User]
+        return [()=>{}]
     } else {
         return []
     }
@@ -19,7 +15,7 @@ export function getUserMiddlewareList() {
 
 export function getAdminMiddlewareList() {
     if (jwtHandlingImplemented) {
-        return [customAuthRequiredMiddleware_Admin]
+        return [()=>{}]
     } else {
         return []
     }

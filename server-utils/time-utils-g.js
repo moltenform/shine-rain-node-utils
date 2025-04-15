@@ -1,9 +1,15 @@
 
-// represents a parsed set of strings.
 
-import { assertTrue } from "./jsutils.js"
+import { assertEq, assertTrue } from "./jsutils.js"
 
-// needs timezone info for it to represent an actual time.
+export const TimeUtilOpts = {
+    requireTime: 'requireTime',
+    requireNoTime: 'requireNoTime',
+    
+}
+
+// this only represents a parsed set of strings.
+// it needs an associated timezone for it to represent an actual time.
 export class DateTimeStructure {
     year
     month
@@ -11,25 +17,45 @@ export class DateTimeStructure {
     hour
     minute 
     second
-    render() {
+    render(opts) {
         assertTrue(!_.isNil(this.year))
         assertTrue(!_.isNil(this.month))
         assertTrue(!_.isNil(this.day))
         assertTrue(!_.isNil(this.hour))
         assertTrue(!_.isNil(this.minute))
         this.second = this.second || 0
-        return `${padStart(this.year, 4, '0')}-${padStart(this.month, 2, '0')}-${padStart(this.day, 2, '0')} ` + 
-        `${padStart(this.hour, 2, '0')}:${padStart(this.minute, 2, '0')}:${padStart(this.second, 2, '0')}`
+        let result = `${padStart(this.year, 4, '0')}-${padStart(this.month, 2, '0')}-${padStart(this.day, 2, '0')}` 
+        if (opts?.[TimeUtilOpts.requireTime]) {
+            result += ` ${padStart(this.hour, 2, '0')}:${padStart(this.minute, 2, '0')}:${padStart(this.second, 2, '0')}`
+        }
+        return result
     }
     // accept 2025-04-04, 2025/5/6, 2025-04-04 4:36 PM, 2025-04-04 4:36:06 AM
     // whitespace not yet accepted.
-    parseDate(s) {
-        let dtPart, timePart
+    parseDate(s, opts) {
+        let dtPart, timePart, isPm
+        s = s.strip()
         if (s.includes(' ')) {
-            [dtPart, timePart] = s.split(/\s+/);
+            const spaceParts = s.split(/\s+/);
+            assertEq(3, spaceParts.length, 'need 3 parts: date, time, am or pm');
+            dtPart = spaceParts[0]
+            timePart = spaceParts[1]
+            if (spaceParts[2].toLowerCase() === 'pm') {
+                isPm = true
+            } else if (spaceParts[2].toLowerCase() === 'am') {
+                isPm = false
+            } else {
+                throw new Error('expected to end with am or pm');
+            }
         } else {
             dtPart = s
             timePart = ''
+        }
+
+        if (opts?.[TimeUtilOpts.requireTime]) {
+            assertTrue(timePart, 'need time part');
+        } else if (opts?.[TimeUtilOpts.requireNoTime]) {
+            assertTrue(!timePart, 'need no time part');
         }
 
         const firstParts = dtPart.includes('/') ? dtPart.split('/') : dtPart.split('-');
@@ -40,6 +66,7 @@ export class DateTimeStructure {
         this.year = parseInt(firstParts[0], 10)
         this.month = parseInt(firstParts[1], 10)
         this.day = parseInt(firstParts[2], 10)
+
         // let's say the day starts at 1am
         this.hour = 1
         this.minute = 0
@@ -56,6 +83,10 @@ export class DateTimeStructure {
                 this.second = parseInt(timeParts[2], 10)
             } else {
                 this.second = 0
+            }
+
+            if (isPm) {
+                this.hour += 12
             }
         }
     }
