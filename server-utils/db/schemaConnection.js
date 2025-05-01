@@ -1,5 +1,5 @@
 import BetterSqliteHelper from 'better-sqlite3-helper';
-import { getPathOnDisk } from '../../server-utils/node-server-utils.js';
+import { getPathOnDisk } from '../node-server-utils.js';
 
 import { makeMyPatches } from './schemaWrappers.js';
 import {
@@ -7,12 +7,9 @@ import {
     fsUnlinkAsyncIfExists,
     listFilesInDir,
     pathDirName,
-} from '../../server-utils/file-util-wrappers.js';
+} from '../file-util-wrappers.js';
 import _ from 'lodash';
-import { assertEq, assertTrue, genUuid } from '../../server-utils/jsutils.js';
-
-// Note that database methods are sync, not async.
-// The author of better-sqlite module explains the rationale in their repo.
+import { assertEq, assertTrue, genUuid } from '../jsutils.js';
 
 async function startNewDb() {
     if (fsExistsSync(dbPath)) {

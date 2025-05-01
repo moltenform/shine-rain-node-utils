@@ -104,10 +104,10 @@ export function importLocalTimeString(s, tzString) {
     return dt
 }
 
-console.log(importLocalTime('2025-03-07 07:00:00', 'America/Los_Angeles'))
-console.log(importLocalTime('2025-03-08 07:00:00', 'America/Los_Angeles'))
-console.log(importLocalTime('2025-03-09 07:00:00', 'America/Los_Angeles'))
-console.log(importLocalTime('2025-03-10 07:00:00', 'America/Los_Angeles'))
-console.log(importLocalTime('2025-03-11 07:00:00', 'America/Los_Angeles'))
+console.log(importLocalTimeString('2025-03-07 07:00:00', 'America/Los_Angeles'))
+console.log(importLocalTimeString('2025-03-08 07:00:00', 'America/Los_Angeles'))
+console.log(importLocalTimeString('2025-03-09 07:00:00', 'America/Los_Angeles'))
+console.log(importLocalTimeString('2025-03-10 07:00:00', 'America/Los_Angeles'))
+console.log(importLocalTimeString('2025-03-11 07:00:00', 'America/Los_Angeles'))
 console.log('a')
 

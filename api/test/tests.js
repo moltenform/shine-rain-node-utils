@@ -1,7 +1,7 @@
 import { shouldBreakOnExceptions_Enable, gLog } from '../../server-utils/logging.js';
 import { dbTests } from './test-db.js';
 import { testUtils } from './test-utils.js';
-import { startTestDbMode } from '../../server-utils/db/schema.js';
+import { startTestDbMode } from '../../server-utils/db/schemaConnection.js';
 
 /* (c) 2019 moltenform(Ben Fisher) */
 /* This file is released under the MIT license */

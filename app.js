@@ -11,7 +11,7 @@ import {
     resetCwd,
 } from './server-utils/node-server-utils.js';
 import { logInfo, shouldBreakOnExceptions_Enable } from './server-utils/logging.js';
-import { startSqliteDbOnAppSetup } from './server-utils/db/schema.js';
+import { startSqliteDbOnAppSetup } from './server-utils/db/schemaConnection.js';
 import { respondToServerErr } from './server-utils/err-handling.js';
 import { runProtectedByLockAndTxn } from './server-utils/api-route-helpers.js';
 import { osPlatform, pathBaseName, pathJoin } from './server-utils/file-util-wrappers.js';

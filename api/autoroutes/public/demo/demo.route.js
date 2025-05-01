@@ -1,39 +1,77 @@
+import {
+    createDocument,
+    createEmployee,
+} from '../../../../server-utils/db/schemaConstructors.js';
+import { deleteAllEmployees } from '../../../../server-utils/db/schemaDeconstructors.js';
+import { genUuid } from '../../../../server-utils/jsutils.js';
 
-const ownerId = 'testEmployeeId'
-const docId = 'testDoc'
+const employeeIdToUseForTesting = genUuid();
 
 export async function onGet(req, res, readConn, templateUrl) {
-    const state = {}
-    const row = readConn.queryFirstRowChecked(ownerId, 'EmployeeDocuments', 'id= ?', docId)
-    let data = { row: row || 'Row not yet created.' };
+    const state = {};
+
+    // get the first document belonging to employeeIdToUseForTesting
+    const row = readConn.queryFirstRowChecked(
+        employeeIdToUseForTesting,
+        'EmployeeDocuments',
+        '(AnyRecord)'
+    );
+    
+    let data = { row: row?.info?.counter || 'Press StartTest to start the test.' };
     res.render(templateUrl, data);
 }
 
 export async function onPost(req, res, conn) {
-    const row = conn.queryFirstRowChecked(ownerId, 'EmployeeDocuments', 'id= ?', docId)
-    if (!row) {
-        // create the Employees row if it doesn't yet exist
-        conn.insertSkipOwnerCheck('Employees', {id: ownerId, firstName: 'bob', lastName: 'smith', })
+    if (req.body.action === 'StartTest') {
+        // set up the test.
+        deleteAllDocuments(conn);
+        deleteAllEmployees(conn);
+        const newEmployee = createEmployee(conn, {id:employeeIdToUseForTesting, firstName: 'Bob', lastName: 'Smith' });
+        const newDocument = createDocument(conn, {ownerId:employeeIdToUseForTesting, name:'test.pdf'});
+        conn.updateChecked(
+            employeeIdToUseForTesting,
+            'EmployeeDocuments',
+            { info: { counter: 1 } },
+            { id: newDocument.id }
+        );
+    } else if (req.body.action === 'IncrementCounter') {
+        // add 1 to the counter.
+        const document = readConn.queryFirstRowChecked(
+            employeeIdToUseForTesting,
+            'EmployeeDocuments',
+            '(AnyRecord)'
+        );
+        if (!document) {
+            throw new Error('First press StartTest to start the test');
+        } else {
+            conn.updateChecked(
+                employeeIdToUseForTesting,
+                'EmployeeDocuments',
+                { info: { counter: document.info.counter + 1 } },
+                { id: document.id }
+            );
+        }
+    } else if (req.body.action === 'TestRollback') {
+        // because of the exception, the changes here should not be applied.
+        const document = readConn.queryFirstRowChecked(
+            employeeIdToUseForTesting,
+            'EmployeeDocuments',
+            '(AnyRecord)'
+        );
+        if (!document) {
+            throw new Error('First press StartTest to start the test');
+        } else {
+            conn.updateChecked(
+                employeeIdToUseForTesting,
+                'EmployeeDocuments',
+                { info: { counter: 999 } },
+                { id: document.id }
+            );
+        }
 
-        // create the EmployeeDocuments row if it doesn't yet exist
-        conn.insertChecked(ownerId, 'EmployeeDocuments', {id: docId, counter: 1, info: {counterInJson: 100, otherData: 1}})
-    }
-    
-
-    if (req.body.action === 'btnBegin') {
-        // reset count back to 1
-        conn.updateChecked(ownerId, 'EmployeeDocuments', {id: docId, counter: 1, info: {counterInJson: 100, otherData: 1}})
-    } else if (req.body.action === 'btnIncr') {
-        // add 1 to the field
-        conn.updateChecked(ownerId, 'EmployeeDocuments', { counter: row.counter+1}, {id: docId})
-    } else if (req.body.action === 'btnIncrJson') {
-        // add 1 to the json field
-        conn.updateChecked(ownerId, 'EmployeeDocuments', { info: {... row.info, counterInJson: row.info.counterInJson+1} }, {id: docId})
-    } else if (req.body.action === 'btnTestRollback') {
-        // set it to 9999 -- but this change should get rolled back and not applied
-        conn.updateChecked(ownerId, 'EmployeeDocuments', {id: docId, counter: 9999, info: {counterInJson: 9999}})
-        throw new Error('intentional error to test rollback');
+        throw new Error('Intentional error to test rollback');
     } else {
-        throw new Error('unknown action: ' + req.body.action);
+        // unsupported action.
+        throw new Error('Unknown action: ' + req.body.action);
     }
 }

@@ -2,7 +2,7 @@
 import { getAdminMiddlewareList, getUserMiddlewareList } from './server-feature-jwt.js';
 import { logInfo } from './logging.js';
 import RWLock from 'async-rwlock';
-import { getReadOnlyDbConn, getReadWriteDbConn_CallOnlyFromApiRouteHelpers } from '../server-utils/db/schema.js';
+import { getReadOnlyDbConn, getReadWriteDbConn_CallOnlyFromApiRouteHelpers } from './db/schemaConnection.js';
 import { wrapResponseInTryCatch } from './err-handling.js';
 import { multerUploadInstance } from './server-feature-uploads.js';
 
