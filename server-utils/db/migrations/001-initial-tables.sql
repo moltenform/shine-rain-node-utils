@@ -1,7 +1,7 @@
 
 -- Up
 CREATE TABLE `Employees` (
-  id PRIMARY KEY,
+  ownerId PRIMARY KEY,
   firstName NOT NULL,
   lastName NOT NULL
 );

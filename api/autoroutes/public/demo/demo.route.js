@@ -26,7 +26,7 @@ export async function onPost(req, res, conn) {
         // set up the test.
         deleteAllDocuments(conn);
         deleteAllEmployees(conn);
-        const newEmployee = createEmployee(conn, {id:employeeIdToUseForTesting, firstName: 'Bob', lastName: 'Smith' });
+        const newEmployee = createEmployee(conn, {ownerId:employeeIdToUseForTesting, firstName: 'Bob', lastName: 'Smith' });
         const newDocument = createDocument(conn, {ownerId:employeeIdToUseForTesting, name:'test.pdf'});
         conn.updateChecked(
             employeeIdToUseForTesting,

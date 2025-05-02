@@ -2,12 +2,12 @@ import { genUuid } from '../jsutils.js';
 
 export function createEmployee(conn, opts) {
     const record = {
-        id: opts.id || genUuid(),
+        ownerId: opts.ownerId || genUuid(),
         firstName: opts?.firstName,
         lastName: opts?.lastName,
     };
 
-    conn.insertChecked(record.id, 'Employees', record);
+    conn.insertChecked(record.ownerId, 'Employees', record);
     return record;
 }
 

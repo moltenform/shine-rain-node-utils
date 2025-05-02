@@ -147,19 +147,10 @@ export function makeMyPatches(dbConnection, transformJsonToStr, transformStrToJs
     };
 
     // be careful about replace() because it deletes the existing row and then inserts a new one,
-    // we should be ok bc we are in a transaction, but something to be careful about.
-    // and for triggers or cascade delete it could create issues.
+    // for triggers or cascade delete it could create issues.
     dbConnection.replaceSkipOwnerCheck = (table, record, ...args) => {
         record = transformJsonToStr(record);
         return dbConnection._origReplace(table, record, ...args);
-    };
-    dbConnection.replaceChecked = (ownerId, table, record, ...args) => {
-        assertTrue(ownerId, 'not a valid id');
-        return dbConnection.replaceSkipOwnerCheck(
-            table,
-            { ...record, ownerId: ownerId },
-            ...args
-        );
     };
     dbConnection.sqlSkipOwnerCheck = (...args) => {
         return dbConnection.prepare(...args);
@@ -169,13 +160,13 @@ export function makeMyPatches(dbConnection, transformJsonToStr, transformStrToJs
 // Database methods are sync, not async.
 // The author of the better-sqlite module explains the rationale in their repo.
 
-export function getCount_SkipOwnerCheckFromDb(conn, query, paramsToSend = undefined) {
+export function getCountSkipOwnerCheck(conn, query, paramsToSend = undefined) {
     assertTrue(query.includes('whatToCount'));
     if (query.includes('?')) {
         assertTrue(paramsToSend !== undefined);
     }
 
-    let c = conn.sql_SkipOwnerCheck(query);
+    let c = conn.runSqlSkipOwnerCheck(query);
     c = query.includes('?') ? c.all(paramsToSend)[0] : c.all()[0];
     return c.whatToCount;
 }

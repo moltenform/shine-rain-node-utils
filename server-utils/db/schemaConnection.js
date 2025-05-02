@@ -32,7 +32,7 @@ async function startNewDb() {
     makeMyPatches(db, transformJsonToStr, transformStrToJson);
     lookForJsonFields(db);
     
-    db.insertWithoutValidation_SkipOwnerCheck(`Metadata`, {
+    db.insertSkipOwnerCheck(`Metadata`, {
         MetadataId: genUuid(),
         schemaVersion: 1,
     });
@@ -91,14 +91,14 @@ export function getReadOnlyDbConn() {
     makeMyPatches(c, transformJsonToStr, transformStrToJson);
     assertTrue(_.size(colsThatAreJson) > 0, "We expect lookForJsonFields to have been called by this point.")
     return {
-        query_SkipOwnerCheck: (...args) => c.query_SkipOwnerCheck(...args),
-        query_SkipOwnerCheckFirstRow: (...args) => c.query_SkipOwnerCheckFirstRow(...args),
-        sql_SkipOwnerCheck: (q, ...args) => {
+        querySkipOwnerCheck: (...args) => c.querySkipOwnerCheck(...args),
+        querySkipOwnerCheckFirstRow: (...args) => c.querySkipOwnerCheckFirstRow(...args),
+        runSqlSkipOwnerCheck: (q, ...args) => {
             assertTrue(
                 q.toLowerCase().startsWith('select '),
                 'query must be a select'
             );
-            return c.sql_SkipOwnerCheck(q, ...args);
+            return c.runSqlSkipOwnerCheck(q, ...args);
         },
         update: () => {
             throw new Error('method disabled in view only mode');
