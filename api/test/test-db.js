@@ -20,8 +20,8 @@ export async function testDb() {
     await runProtectedByLockAndTxn(
         async (conn) => {
             //~ return
-    resetTestRows(conn);
-    //~ runTestsWriteAccess(conn);
+    //~ resetTestRows(conn);
+    runTestsWriteAccess(conn);
         },
         true /* writeAccess */,
         {} /* express res object */
@@ -49,23 +49,23 @@ function runTestsReadOnly(conn) {
     );
 
     // writing should be disallowed
-    assertThrow(() => createDocument(conn, { ownerId: 'eeid1', name: `test-doc.pdf` }), 'xxx');
-    assertThrow(() => conn.runSqlSkipOwnerCheck(`insert into EmployeeDocuments (name, id, ownerId) values ('test-doc.pdf', 'newid', 'eeid1')`), 'xxx');
+    assertThrow(() => createDocument(conn, { ownerId: 'eeid1', name: `test-doc.pdf` }), 'not a function');
+    assertThrow(() => conn.runSqlSkipOwnerCheck(
+        `insert into EmployeeDocuments (name, id, ownerId) values ('test-doc.pdf', 'newid', 'eeid1')`), 'must be a select');
 
     // updating should be disallowed
     assertThrow(
         () => conn.update('eed1', 'Employees', { firstName: 'changed' }, { ownerId: 'eed1' }),
-        'xxx'
+        'disabled'
     );
-    assertThrow(() => conn.runSqlSkipOwnerCheck(`update EmployeeDocuments set name='changed' where ownerId='eed1'`), 'xxx');
+    assertThrow(() => conn.runSqlSkipOwnerCheck(`update EmployeeDocuments set name='changed' where ownerId='eed1'`), 'must be a select');
 
     // runSqlSkipOwnerCheck is ok if it's a query
-    let got = conn.runSqlSkipOwnerCheck(`select * from EmployeeDocuments where ownerId='eed1'`);
-    got = got.all()
+    let got = conn.runSqlSkipOwnerCheck(`select * from EmployeeDocuments where ownerId='eeid1'`);
     assertEq(3, got.length)
 
     // count rows
-    got = getCountSkipOwnerCheck(conn, `select count(*) as whatToCount from EmployeeDocuments where ownerId='eed1'`);
+    got = getCountSkipOwnerCheck(conn, `select count(*) as whatToCount from EmployeeDocuments where ownerId='eeid1'`);
     assertEq(3, got)
     got = getCountSkipOwnerCheck(conn, `select count(*) as whatToCount from EmployeeDocuments where ownerId='notexist'`);
     assertEq(0, got)
@@ -76,6 +76,8 @@ function runTestsReadOnly(conn) {
 function resetTestRows(conn) {
     deleteAllDocuments(conn);
     deleteAllEmployees(conn);
+    assertEq(0, getCountSkipOwnerCheck(conn, `select count(*) as whatToCount from EmployeeDocuments`));
+    assertEq(0, getCountSkipOwnerCheck(conn, `select count(*) as whatToCount from Employees`));
     const ee1 = createEmployee(conn, { ownerId: 'eeid1', firstName: 'alice', lastName: 'smith' });
     const ee2 = createEmployee(conn, { ownerId: 'eeid2', firstName: 'bob', lastName: 'smith' });
     createDocument(conn, { ownerId: ee1.ownerId, name: `test-1-doc.pdf` });
@@ -104,38 +106,9 @@ function runTestsWriteAccess(conn) {
     testDbUpdate(conn);
     testDbDelete(conn);
     testDbInsert(conn);
-    testDbReplace(conn);
 
     // prep for runTestsReadOnly
     resetTestRows(conn);
-}
-
-function testDbReplace(conn) {
-    resetTestRows(conn);
-    const rowIdExists = conn.queryFirstRowChecked('eeid2', 'EmployeeDocuments', 'name=? order by name, ownerId', 'test-1-doc.pdf').id
-    const rowIdNew = genUuid()
-
-    // replaceSkipOwnerCheck, id exists
-    resetTestRows(conn);
-    conn.replaceSkipOwnerCheck(
-        'EmployeeDocuments',
-        { id: rowIdExists, name: 'new.pdf', ownerId: 'eeid2' },
-    );
-    checkEqual(
-        conn,
-        `zzz`
-    );
-
-    // replaceSkipOwnerCheck, id not exist
-    resetTestRows(conn);
-    conn.replaceSkipOwnerCheck(
-        'EmployeeDocuments',
-        { id: rowIdNew, name: 'new.pdf', ownerId: 'eeid2' },
-    );
-    checkEqual(
-        conn,
-        `zzz`
-    );
 }
 
 function testDbInsert(conn) {
@@ -143,7 +116,7 @@ function testDbInsert(conn) {
     resetTestRows(conn);
     assertThrow(
         () => conn.insertSkipOwnerCheck('EmployeeDocuments', { name: 'new.pdf' }),
-        'xxx'
+        'constraint failed'
     );
 
     // insertSkipOwnerCheck
@@ -151,12 +124,13 @@ function testDbInsert(conn) {
     conn.insertSkipOwnerCheck('EmployeeDocuments', { name: 'new.pdf', ownerId: 'eeid2' });
     checkEqual(
         conn,
-        `test-1-doc.pdf,eeid1,undefined
+        `new.pdf,eeid2,undefined
+        test-1-doc.pdf,eeid1,undefined
+        test-1-doc.pdf,eeid2,undefined
         test-2-doc.pdf,eeid1,undefined
         test-2-doc.pdf,eeid2,undefined
         test-3-doc.pdf,eeid1,undefined
-        test-3-doc.pdf,eeid2,undefined
-        new.pdf,eeid2,undefined`
+        test-3-doc.pdf,eeid2,undefined`
     );
 
     // insertChecked
@@ -164,12 +138,13 @@ function testDbInsert(conn) {
     conn.insertChecked('eeid2', 'EmployeeDocuments', { name: 'new.pdf' });
     checkEqual(
         conn,
-        `test-1-doc.pdf,eeid1,undefined
+        `new.pdf,eeid2,undefined
+        test-1-doc.pdf,eeid1,undefined
+        test-1-doc.pdf,eeid2,undefined
         test-2-doc.pdf,eeid1,undefined
         test-2-doc.pdf,eeid2,undefined
         test-3-doc.pdf,eeid1,undefined
-        test-3-doc.pdf,eeid2,undefined
-        new.pdf,eeid2,undefined`
+        test-3-doc.pdf,eeid2,undefined`
     );
 
     // insertChecked, first param has priority
@@ -177,12 +152,13 @@ function testDbInsert(conn) {
     conn.insertChecked('eeid2', 'EmployeeDocuments', { name: 'new.pdf', ownerId: 'eeid1' });
     checkEqual(
         conn,
-        `test-1-doc.pdf,eeid1,undefined
+        `new.pdf,eeid2,undefined
+        test-1-doc.pdf,eeid1,undefined
+        test-1-doc.pdf,eeid2,undefined
         test-2-doc.pdf,eeid1,undefined
         test-2-doc.pdf,eeid2,undefined
         test-3-doc.pdf,eeid1,undefined
-        test-3-doc.pdf,eeid2,undefined
-        new.pdf,eeid2,undefined`
+        test-3-doc.pdf,eeid2,undefined`
     );
 
     // insertChecked, first param is missing
@@ -226,8 +202,7 @@ function testDbDelete(conn) {
     resetTestRows(conn);
     conn.deleteSkipOwnerCheck(
         'EmployeeDocuments',
-        { ownerId: 'eeid2' },
-        { name: 'test-1-doc.pdf' }
+        { name: 'test-1-doc.pdf', ownerId: 'eeid2' },
     );
     checkEqual(
         conn,
@@ -280,7 +255,7 @@ function testDbUpdate(conn) {
     resetTestRows(conn);
     conn.updateSkipOwnerCheck(
         'EmployeeDocuments',
-        { info: { x: 1 } },
+        { info: {x:1} },
         { name: 'notexist.pdf' },
         { noChangesOk: 1 }
     );
@@ -296,14 +271,14 @@ function testDbUpdate(conn) {
     resetTestRows(conn);
     conn.updateSkipOwnerCheck(
         'EmployeeDocuments',
-        { info: { x: 1 } },
+        { info: {x:1} },
         { name: 'test-1-doc.pdf' },
         { multiChangesOk: 1 }
     );
     checkEqual(
         conn,
-        `test-1-doc.pdf,eeid1,{ x: 1 }
-        test-1-doc.pdf,eeid2,{ x: 1 }
+        `test-1-doc.pdf,eeid1,{x:1}
+        test-1-doc.pdf,eeid2,{x:1}
         test-2-doc.pdf,eeid1,undefined
         test-2-doc.pdf,eeid2,undefined
         test-3-doc.pdf,eeid1,undefined
@@ -312,13 +287,13 @@ function testDbUpdate(conn) {
     resetTestRows(conn);
     conn.updateSkipOwnerCheck(
         'EmployeeDocuments',
-        { info: { x: 1 }, ownerId: 'eeid2' },
-        { name: 'test-1-doc.pdf' }
+        { info: {x:1} },
+        { name: 'test-1-doc.pdf', ownerId: 'eeid2' }
     );
     checkEqual(
         conn,
         `test-1-doc.pdf,eeid1,undefined
-        test-1-doc.pdf,eeid2,{ x: 1 }
+        test-1-doc.pdf,eeid2,{x:1}
         test-2-doc.pdf,eeid1,undefined
         test-2-doc.pdf,eeid2,undefined
         test-3-doc.pdf,eeid1,undefined
@@ -331,7 +306,7 @@ function testDbUpdate(conn) {
         () =>
             conn.updateSkipOwnerCheck(
                 'EmployeeDocuments',
-                { info: { x: 1 } },
+                { info: {x:1} },
                 { name: 'test-1-doc.pdf' }
             ),
         'affected many rows'
@@ -341,7 +316,7 @@ function testDbUpdate(conn) {
         () =>
             conn.updateSkipOwnerCheck(
                 'EmployeeDocuments',
-                { info: { x: 1 } },
+                { info: {x:1} },
                 { name: 'notexist.pdf' }
             ),
         'not affect any rows'
@@ -352,13 +327,13 @@ function testDbUpdate(conn) {
     conn.updateChecked(
         'eeid2',
         'EmployeeDocuments',
-        { info: { x: 1 } },
+        { info: {x:1} },
         { name: 'test-1-doc.pdf' }
     );
     checkEqual(
         conn,
         `test-1-doc.pdf,eeid1,undefined
-        test-1-doc.pdf,eeid2,{ x: 1 }
+        test-1-doc.pdf,eeid2,{x:1}
         test-2-doc.pdf,eeid1,undefined
         test-2-doc.pdf,eeid2,undefined
         test-3-doc.pdf,eeid1,undefined
@@ -372,7 +347,7 @@ function testDbUpdate(conn) {
             conn.updateChecked(
                 'eeid2',
                 'EmployeeDocuments',
-                { info: { x: 1 } },
+                { info: {x:1} },
                 { name: 'notexist.pdf' }
             ),
         'not affect any rows'
@@ -383,7 +358,7 @@ function testDbUpdate(conn) {
             conn.updateChecked(
                 undefined,
                 'EmployeeDocuments',
-                { info: { x: 1 } },
+                { info: {x:1} },
                 { name: 'test-1-doc.pdf' }
             ),
         'not a valid id'
@@ -473,7 +448,8 @@ function showRows(conn, rows = undefined) {
     rows = rows ?? conn.querySkipOwnerCheck(
         'select * from EmployeeDocuments order by name, ownerId'
     );
-    return rows.map((row) => `${row.name},${row.ownerId},${row.info}`).join('\n');
+    const renderInfo = (info) => info ? JSON.stringify(info).replace(/"/g, '') : info;
+    return rows.map((row) => `${row.name},${row.ownerId},${renderInfo(row.info)}`).join('\n');
 }
 
 function checkEqual(conn, a, rows = undefined) {

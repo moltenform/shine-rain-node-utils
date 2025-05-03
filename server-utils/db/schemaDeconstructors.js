@@ -1,9 +1,9 @@
 
 export function deleteAllDocuments(conn) {
-    conn.sqlSkipOwnerCheck(`delete from EmployeeDocuments`);
+    conn.runSqlSkipOwnerCheck(`delete from EmployeeDocuments where true;`);
 }
 
 export function deleteAllEmployees(conn) {
-    conn.sqlSkipOwnerCheck(`delete from Employees`);
+    conn.runSqlSkipOwnerCheck(`delete from Employees where true;`);
 }
 

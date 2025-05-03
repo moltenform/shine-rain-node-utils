@@ -148,12 +148,17 @@ export function makeMyPatches(dbConnection, transformJsonToStr, transformStrToJs
 
     // be careful about replace() because it deletes the existing row and then inserts a new one,
     // for triggers or cascade delete it could create issues.
-    dbConnection.replaceSkipOwnerCheck = (table, record, ...args) => {
-        record = transformJsonToStr(record);
-        return dbConnection._origReplace(table, record, ...args);
-    };
-    dbConnection.sqlSkipOwnerCheck = (...args) => {
-        return dbConnection.prepare(...args);
+    dbConnection.runSqlPrepareSkipOwnerCheck = (q) => {
+        return dbConnection.prepare(q);
+    }
+    dbConnection.runSqlSkipOwnerCheck = (q, ...params) => {
+        const prepared = dbConnection.runSqlPrepareSkipOwnerCheck(q);
+        const method = q.toLowerCase().startsWith('select') ? 'all' : 'run';
+        if (q.includes('?')) {
+            return prepared[method](...params);
+        } else {
+            return prepared[method]();
+        }
     };
 }
 
@@ -166,9 +171,8 @@ export function getCountSkipOwnerCheck(conn, query, paramsToSend = undefined) {
         assertTrue(paramsToSend !== undefined);
     }
 
-    let c = conn.runSqlSkipOwnerCheck(query);
-    c = query.includes('?') ? c.all(paramsToSend)[0] : c.all()[0];
-    return c.whatToCount;
+    let c = conn.runSqlSkipOwnerCheck(query, paramsToSend);
+    return c[0].whatToCount;
 }
 
 export function escapeForLike(s) {
