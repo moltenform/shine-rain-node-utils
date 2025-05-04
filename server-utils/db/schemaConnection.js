@@ -175,9 +175,14 @@ function transformJsonToStr(row) {
     let results = {};
     for (let colName in row) {
         if (colsThatAreJson[colName + '_json']) {
-            results[colName + '_json'] = _.isNil(row[colName])
-                ? undefined
-                : JSON.stringify(row[colName]);
+            if (_.isNil(row[colName])) {
+                // note that undefined and null are different in an update.
+                results[colName + '_json'] = row[colName];
+            } else {
+                results[colName + '_json'] = JSON.stringify(row[colName]);
+                assertTrue(results[colName + '_json'].startsWith('{') ||
+                    results[colName + '_json'].startsWith('['), "putting a non-object in json column")
+            }
         } else {
             results[colName] = row[colName];
         }

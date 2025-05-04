@@ -93,10 +93,12 @@ export function makeMyPatches(dbConnection, transformJsonToStr, transformStrToJs
         const q = `select * from ${table} where ownerId=? and ${conditions}`;
         return dbConnection.queryFirstRowSkipOwnerCheck(q, ownerId, ...args);
     };
+    // use { field: null } to unset a value, { field: undefined } is ignored
     dbConnection.updateSkipOwnerCheck = (a1, a2, criteria, opts) => {
         a2 = transformJsonToStr(a2);
         const countChanges = dbConnection._origUpdate(a1, a2, criteria);
         if (countChanges === 0 && !opts?.noChangesOk) {
+            // todo: distinguish between a) no rows found b) the rows found already had those vals
             throw new Error(
                 'update did not affect any rows, use updateNoChangesOk if this is expected'
             );
@@ -109,6 +111,7 @@ export function makeMyPatches(dbConnection, transformJsonToStr, transformStrToJs
 
         return countChanges;
     };
+    // use { field: null } to unset a value, { field: undefined } is ignored
     dbConnection.updateChecked = (ownerId, a1, a2, criteria, opts) => {
         assertTrue(ownerId, 'not a valid id');
         criteria = { ...criteria, ownerId: ownerId };
@@ -117,6 +120,7 @@ export function makeMyPatches(dbConnection, transformJsonToStr, transformStrToJs
     dbConnection.deleteSkipOwnerCheck = (a1, a2, opts) => {
         const countChanges = dbConnection._origDelete(a1, a2);
         if (countChanges === 0 && !opts?.noChangesOk) {
+            // todo: distinguish between a) no rows found b) the rows found already had those vals
             throw new Error(
                 'delete did not affect any rows, use updateNoChangesOk if this is expected'
             );
