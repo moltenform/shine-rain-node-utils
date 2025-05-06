@@ -2,7 +2,7 @@ import {
     createDocument,
     createEmployee,
 } from '../../../../server-utils/db/schemaConstructors.js';
-import { deleteAllEmployees } from '../../../../server-utils/db/schemaDeconstructors.js';
+import { deleteAllDocuments, deleteAllEmployees } from '../../../../server-utils/db/schemaDeconstructors.js';
 import { genUuid } from '../../../../server-utils/jsutils.js';
 
 const employeeIdToUseForTesting = genUuid();
@@ -36,7 +36,7 @@ export async function onPost(req, res, conn) {
         );
     } else if (req.body.action === 'IncrementCounter') {
         // add 1 to the counter.
-        const document = readConn.queryFirstRowChecked(
+        const document = conn.queryFirstRowChecked(
             employeeIdToUseForTesting,
             'EmployeeDocuments',
             '(AnyRecord)'
@@ -53,7 +53,7 @@ export async function onPost(req, res, conn) {
         }
     } else if (req.body.action === 'TestRollback') {
         // because of the exception, the changes here should not be applied.
-        const document = readConn.queryFirstRowChecked(
+        const document = conn.queryFirstRowChecked(
             employeeIdToUseForTesting,
             'EmployeeDocuments',
             '(AnyRecord)'

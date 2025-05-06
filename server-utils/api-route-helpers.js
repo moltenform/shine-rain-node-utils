@@ -114,6 +114,7 @@ export async function runProtectedByLockAndTxn(fn, needsWriteAccess, res=undefin
         if (needsWriteAccess) {
             dbconn.exec('ROLLBACK TRANSACTION')
         }
+        debugger;
         throw err;
     } finally {
         lock.unlock() 

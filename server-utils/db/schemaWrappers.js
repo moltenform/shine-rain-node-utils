@@ -93,9 +93,9 @@ export function makeMyPatches(dbConnection, transformJsonToStr, transformStrToJs
         const q = `select * from ${table} where ownerId=? and ${conditions}`;
         return dbConnection.queryFirstRowSkipOwnerCheck(q, ownerId, ...args);
     };
-    // use { field: null } to unset a value, { field: undefined } is ignored
+    // use { field: null } and not { field: undefined } to unset a value
     dbConnection.updateSkipOwnerCheck = (a1, a2, criteria, opts) => {
-        a2 = transformJsonToStr(a2);
+        a2 = transformJsonToStr(a2, 'update');
         const countChanges = dbConnection._origUpdate(a1, a2, criteria);
         if (countChanges === 0 && !opts?.noChangesOk) {
             // todo: distinguish between a) no rows found b) the rows found already had those vals
@@ -111,7 +111,7 @@ export function makeMyPatches(dbConnection, transformJsonToStr, transformStrToJs
 
         return countChanges;
     };
-    // use { field: null } to unset a value, { field: undefined } is ignored
+    // use { field: null } and not { field: undefined } to unset a value
     dbConnection.updateChecked = (ownerId, a1, a2, criteria, opts) => {
         assertTrue(ownerId, 'not a valid id');
         criteria = { ...criteria, ownerId: ownerId };
@@ -139,7 +139,7 @@ export function makeMyPatches(dbConnection, transformJsonToStr, transformStrToJs
         return dbConnection.deleteSkipOwnerCheck(a1, criteria, opts);
     };
     dbConnection.insertSkipOwnerCheck = (a1, a2, ...args) => {
-        a2 = transformJsonToStr(a2);
+        a2 = transformJsonToStr(a2, 'insert');
         const countChanges = dbConnection._origInsert(a1, a2, ...args);
         assertTrue(countChanges >= 1, 'insert failed');
         return countChanges;

@@ -1,5 +1,5 @@
 import BetterSqliteHelper from 'better-sqlite3-helper';
-import { getPathOnDisk } from '../node-server-utils.js';
+import { getPathOnDisk, isProduction } from '../node-server-utils.js';
 
 import { makeMyPatches } from './schemaWrappers.js';
 import {
@@ -167,16 +167,21 @@ function lookForJsonFields(db) {
     }
 }
 
-function transformJsonToStr(row) {
+function transformJsonToStr(row, context) {
     if (!row) {
         return row;
     }
 
     let results = {};
     for (let colName in row) {
+        if (context === 'update') {
+            assertTrue(isProduction() || row[colName] !== undefined, 
+                "update putting undefined in column means skipping the col, which usually isn't intended")
+        }
+
         if (colsThatAreJson[colName + '_json']) {
             if (_.isNil(row[colName])) {
-                // note that undefined and null are different in an update.
+                // use { field: null } and not { field: undefined } to unset a value
                 results[colName + '_json'] = row[colName];
             } else {
                 results[colName + '_json'] = JSON.stringify(row[colName]);

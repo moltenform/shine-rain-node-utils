@@ -122,8 +122,6 @@ function resetTestRows(conn) {
 
 function runTestsWriteAccess(conn) {
     resetTestRows(conn);
-
-    // read
     checkEqual(
         conn,
         `test-1-doc.pdf,eeid1,undefined
@@ -516,139 +514,132 @@ function testDbJson(conn) {
 
     // test update null semantics on a non-json field.
     // first give a value.
-    conn.updateChecked(
+    conn.updateSkipOwnerCheck(
         'eeid1',
-        'EmployeeDocuments',
+        'CompanyDocuments',
         { documentType: 'abc', documentContent: genUuid() },
-        { name: 'test-1-doc.pdf', ownerId: 'eeid1' }
+        { name: 'test-1-doc.pdf', companyId: 'eeid1' }
     );
     assertEq(
         'abc',
-        conn.queryFirstRowChecked('eeid1', `EmployeeDocuments`, `name = 'test-1-doc.pdf'`)
+        conn.queryFirstRowChecked('eeid1', `CompanyDocuments`, `name = 'test-1-doc.pdf'`)
             .documentType
     );
 
-    // set the value to undefined. better-sqlite ignores it and nothing changes
-    conn.updateChecked(
-        'eeid1',
-        'EmployeeDocuments',
-        { documentType: undefined, documentContent: genUuid() }, // ignored
-        { name: 'test-1-doc.pdf', ownerId: 'eeid1' }
-    );
-    assertEq(
-        'abc',
-        conn.queryFirstRowChecked('eeid1', `EmployeeDocuments`, `name = 'test-1-doc.pdf'`)
-            .documentType
+    // set the value to undefined. our warning fires
+    assertThrow(
+        () =>
+            conn.updateSkipOwnerCheck(
+                'eeid1',
+                'CompanyDocuments',
+                { documentType: undefined, documentContent: genUuid() },
+                { name: 'test-1-doc.pdf', companyId: 'eeid1' }
+            ),
+        'undefined in column'
     );
 
     // set the value to null. better-sqlite sets to NULL in the db
-    conn.updateChecked(
+    conn.updateSkipOwnerCheck(
         'eeid1',
-        'EmployeeDocuments',
+        'CompanyDocuments',
         { documentType: null, documentContent: genUuid() }, // not ignored
-        { name: 'test-1-doc.pdf', ownerId: 'eeid1' }
+        { name: 'test-1-doc.pdf', companyId: 'eeid1' }
     );
     assertEq(
         null,
-        conn.queryFirstRowChecked('eeid1', `EmployeeDocuments`, `name = 'test-1-doc.pdf'`)
+        conn.queryFirstRowChecked('eeid1', `CompanyDocuments`, `name = 'test-1-doc.pdf'`)
             .documentType
     );
 
     // quoted empty string in the db -> empty string in js
     conn.runSqlSkipOwnerCheck(
-        `update EmployeeDocuments set info_json = '""' where name = 'test-1-doc.pdf'`
+        `update CompanyDocuments set companyInfo_json = '""' where name = 'test-1-doc.pdf'`
     );
     assertEq(
         '',
-        conn.queryFirstRowChecked('eeid1', `EmployeeDocuments`, `name = 'test-1-doc.pdf'`).info
+        conn.queryFirstRowChecked('eeid1', `CompanyDocuments`, `name = 'test-1-doc.pdf'`)
+            .companyInfo
     );
 
     // empty string in the db -> error in js
     conn.runSqlSkipOwnerCheck(
-        `update EmployeeDocuments set info_json = '' where name = 'test-1-doc.pdf'`
+        `update CompanyDocuments set companyInfo_json = '' where name = 'test-1-doc.pdf'`
     );
     assertThrow(
         () =>
-            conn.queryFirstRowChecked('eeid1', `EmployeeDocuments`, `name = 'test-1-doc.pdf'`)
-                .info
+            conn.queryFirstRowChecked('eeid1', `CompanyDocuments`, `name = 'test-1-doc.pdf'`)
+                .companyInfo
     );
 
     // NULL in the db -> undefined in js
     conn.runSqlSkipOwnerCheck(
-        `update EmployeeDocuments set info_json = NULL where name = 'test-1-doc.pdf'`
+        `update CompanyDocuments set companyInfo_json = NULL where name = 'test-1-doc.pdf'`
     );
     assertEq(
         undefined,
-        conn.queryFirstRowChecked('eeid1', `EmployeeDocuments`, `name = 'test-1-doc.pdf'`).info
+        conn.queryFirstRowChecked('eeid1', `CompanyDocuments`, `name = 'test-1-doc.pdf'`)
+            .companyInfo
     );
 
     // {} in js -> {} in the db
-    conn.updateChecked(
+    conn.updateSkipOwnerCheck(
         'eeid1',
-        'EmployeeDocuments',
-        { info: {} },
-        { name: 'test-1-doc.pdf', ownerId: 'eeid1' }
+        'CompanyDocuments',
+        { companyInfo: {} },
+        { name: 'test-1-doc.pdf', companyId: 'eeid1' }
     );
     assertEq(
         [{ 1: 1 }],
         conn.runSqlSkipOwnerCheck(
-            `select 1 from EmployeeDocuments where name = 'test-1-doc.pdf' and ownerId = 'eeid1' and info_json = '{}'`
+            `select 1 from CompanyDocuments where name = 'test-1-doc.pdf' and companyId = 'eeid1' and companyInfo_json = '{}'`
         )
     );
 
-    // undefined in js -> change is ignored by better-sqlite
-    conn.updateChecked(
+    // undefined in js -> our warning fires
+    conn.updateSkipOwnerCheck(
         'eeid1',
-        'EmployeeDocuments',
-        { info: {}, documentContent: genUuid() }, // first set it to something non-null
-        { name: 'test-1-doc.pdf', ownerId: 'eeid1' }
+        'CompanyDocuments',
+        { companyInfo: {}, documentContent: genUuid() }, // first set it to something non-null
+        { name: 'test-1-doc.pdf', companyId: 'eeid1' }
     );
-    conn.updateChecked(
-        'eeid1',
-        'EmployeeDocuments',
-        { info: undefined, documentContent: genUuid() },
-        { name: 'test-1-doc.pdf', ownerId: 'eeid1' }
-    );
-    assertEq(
-        [], // no results found
-        conn.runSqlSkipOwnerCheck(
-            `select 1 from EmployeeDocuments where name = 'test-1-doc.pdf' and ownerId = 'eeid1' and info_json is NULL`
-        )
-    );
-    assertEq(
-        [{ 1: 1 }],
-        conn.runSqlSkipOwnerCheck(
-            `select 1 from EmployeeDocuments where name = 'test-1-doc.pdf' and ownerId = 'eeid1' and info_json = '{}'`
-        )
+    assertThrow(
+        () =>
+            conn.updateSkipOwnerCheck(
+                'eeid1',
+                'CompanyDocuments',
+                { companyInfo: undefined, documentContent: genUuid() },
+                { name: 'test-1-doc.pdf', companyId: 'eeid1' }
+            ),
+        'undefined in column'
     );
 
     // null in js -> NULL in the db (in sql, you have to write IS NULL not = NULL)
-    conn.updateChecked(
+    conn.updateSkipOwnerCheck(
         'eeid1',
-        'EmployeeDocuments',
-        { info: {}, documentContent: genUuid() }, // first set it to something non-null
-        { name: 'test-1-doc.pdf', ownerId: 'eeid1' }
+        'CompanyDocuments',
+        { companyInfo: {}, documentContent: genUuid() }, // first set it to something non-null
+        { name: 'test-1-doc.pdf', companyId: 'eeid1' }
     );
-    conn.updateChecked(
+    conn.updateSkipOwnerCheck(
         'eeid1',
-        'EmployeeDocuments',
-        { info: null, documentContent: genUuid() },
-        { name: 'test-1-doc.pdf', ownerId: 'eeid1' }
+        'CompanyDocuments',
+        { companyInfo: null, documentContent: genUuid() },
+        { name: 'test-1-doc.pdf', companyId: 'eeid1' }
     );
     assertEq(
         [{ 1: 1 }],
         conn.runSqlSkipOwnerCheck(
-            `select 1 from EmployeeDocuments where name = 'test-1-doc.pdf' and ownerId = 'eeid1' and info_json is NULL`
+            `select 1 from CompanyDocuments where name = 'test-1-doc.pdf' and companyId = 'eeid1' and companyInfo_json is NULL`
         )
     );
 
     // empty string in js -> our warning should fire
     assertThrow(
         () =>
-            conn.updateChecked(
+            conn.updateSkipOwnerCheck(
                 'eeid1',
-                'EmployeeDocuments',
-                { info: '', documentContent: genUuid() },
+                'CompanyDocuments',
+                { companyInfo: '', documentContent: genUuid() },
                 { name: 'test-1-doc.pdf' }
             ),
         'non-object'
@@ -657,10 +648,10 @@ function testDbJson(conn) {
     // string literal in js -> our warning should fire
     assertThrow(
         () =>
-            conn.updateChecked(
+            conn.updateSkipOwnerCheck(
                 'eeid1',
-                'EmployeeDocuments',
-                { info: 'abc', documentContent: genUuid() },
+                'CompanyDocuments',
+                { companyInfo: 'abc', documentContent: genUuid() },
                 { name: 'test-1-doc.pdf' }
             ),
         'non-object'
@@ -669,37 +660,39 @@ function testDbJson(conn) {
     // numeric literal in js -> our warning should fire
     assertThrow(
         () =>
-            conn.updateChecked(
+            conn.updateSkipOwnerCheck(
                 'eeid1',
-                'EmployeeDocuments',
-                { info: 123, documentContent: genUuid() },
+                'CompanyDocuments',
+                { companyInfo: 123, documentContent: genUuid() },
                 { name: 'test-1-doc.pdf' }
             ),
         'non-object'
     );
 
     // array in js -> should work
-    conn.updateChecked(
+    conn.updateSkipOwnerCheck(
         'eeid1',
-        'EmployeeDocuments',
-        { info: [1, 2, 3] },
-        { name: 'test-1-doc.pdf', ownerId: 'eeid1' }
+        'CompanyDocuments',
+        { companyInfo: [1, 2, 3] },
+        { name: 'test-1-doc.pdf', companyId: 'eeid1' }
     );
     assertEq(
         [1, 2, 3],
-        conn.queryFirstRowChecked('eeid1', `EmployeeDocuments`, `name = 'test-1-doc.pdf'`).info
+        conn.queryFirstRowChecked('eeid1', `CompanyDocuments`, `name = 'test-1-doc.pdf'`)
+            .companyInfo
     );
 
     // object w nesting in js -> should work
-    conn.updateChecked(
+    conn.updateSkipOwnerCheck(
         'eeid1',
-        'EmployeeDocuments',
-        { info: { a: { b: { c: 1 } } } },
-        { name: 'test-1-doc.pdf', ownerId: 'eeid1' }
+        'CompanyDocuments',
+        { companyInfo: { a: { b: { c: 1 } } } },
+        { name: 'test-1-doc.pdf', companyId: 'eeid1' }
     );
     assertEq(
         { a: { b: { c: 1 } } },
-        conn.queryFirstRowChecked('eeid1', `EmployeeDocuments`, `name = 'test-1-doc.pdf'`).info
+        conn.queryFirstRowChecked('eeid1', `CompanyDocuments`, `name = 'test-1-doc.pdf'`)
+            .companyInfo
     );
 }
 
