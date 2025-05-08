@@ -1,0 +1,5 @@
+
+
+class ShineRainBgTasksExample extends ShineRainBgTasksBase {
+
+}

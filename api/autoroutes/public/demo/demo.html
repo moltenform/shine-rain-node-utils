@@ -1,0 +1,16 @@
+
+
+{% extends "index.njk.html" %} 
+
+{% block content %}
+
+<br/><br/><br/>
+"{{ msgFromServer }}".
+<br/><br/><br/>
+
+<br/><button id="StartTest">Start Test</button>
+<br/><button id="IncrementCounter">Increment Counter</button>
+<br/><button id="TestRollback">Test Rollback (should cause no changes)</button>
+
+{% endblock %}
+

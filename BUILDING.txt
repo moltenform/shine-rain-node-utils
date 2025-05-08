@@ -1,0 +1,33 @@
+
+- Install node
+- Open a terminal, `cd` to directory that contains `package.json`.
+- Run `npm install`
+- Because this is the first time running the app, run
+    - `node app.js --startNewDbFile`
+- Run
+    - `npm run startserver`
+    - you should now be able to open a browser window to
+"http://localhost:8999" and see the website.
+
+if you make js source code changes they will automatically reload the site for convenience.
+if your changes are not showing up in the browser though, they might have been cached by the browser,
+hitting ctrl+F5 (or using chrome tools to clear the site’s cache and then refreshing) should pick up the new changes.
+
+see the scripts section of package.json for more scripts.
+
+If you open the project in VSCode, there are some commands under Run and Debug,
+
+- VSCode
+    - Run the Lint command to run eslint.
+    - Debug server code
+        - Open the Run and Debug section on the left.
+        - Run "Run Startserver Script W Debugger"
+        - You can set breakpoints and step through the code.
+    - Debug client code
+        - Open the Run and Debug section on the left.
+        - Run "Run Chrome W Debugger"
+        - The Chrome Dev Tools is now attached to the VSCode instance.
+        - You can set breakpoints and step through the code.
+
+ Tested on node 20. If you are on windows and get gyp errors, install or update visual studio (or a windows sdk) so that there is a C/C++ compiler.
+ 

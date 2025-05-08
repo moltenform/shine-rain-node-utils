@@ -1,0 +1,48 @@
+{
+    // note that vscode uses whichever launch.json is at the workspace root, which might not be this one...
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Start Tests W Debugger",
+            "program": "${workspaceFolder}/api/test/tests.js",
+            "request": "launch",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "type": "node",
+            "env": {
+                "NODE_ENV": "testing"
+              }
+        },
+   
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Run Startserver Script W Debugger",
+            "runtimeExecutable": "npm",
+            "runtimeArgs": ["run-script", "startserver"],
+            "envFile": "${workspaceFolder}/.env",
+        },
+        
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Lint",
+            "runtimeExecutable": "npm",
+            "runtimeArgs": ["run-script", "lint"],
+            "envFile": "${workspaceFolder}/.env",
+        },
+        
+        {
+            "name": "Launch Chrome W Debugger",
+            "request": "launch",
+            "type": "chrome",
+            "url": "http://localhost:8999/public/signinee",
+            "webRoot": "${workspaceFolder}",
+           "pathMapping": {
+            "/assets": "${workspaceRoot}/public/assets",
+            "/clientjs": "${workspaceRoot}/api/autoroutes",
+           }
+        },
+    ]
+}
